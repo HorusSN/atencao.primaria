@@ -682,7 +682,7 @@ select:focus {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 31mm 0 22mm;
+    margin: 20mm 0 22mm;
 
     @top-center {
       content: "HÓRUS SERVIÇOS & NEGÓCIOS\A Sistema de Informações da Atenção Primária à Saúde (APS)";
@@ -690,7 +690,7 @@ select:focus {
       padding: 0 16mm;
       background: #4A9BD0;
       color: #FFFFFF;
-      font: 700 13pt/1.65 "Inter", Arial, sans-serif;
+      font: 700 13pt/1.2 "Inter", Arial, sans-serif;
       text-align: left;
       vertical-align: middle;
       white-space: pre;
