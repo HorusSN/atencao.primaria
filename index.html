@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#174f3c" />
+  <meta name="description" content="Painel municipal de indicadores da Atenção Primária à Saúde." />
+  <title>Sistema Hórus de Informações da APS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>[hidden]{display:none!important}</style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a href="#" class="brand" aria-label="Página inicial do Sistema Hórus">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span><strong>HÓRUS</strong><small>Informações da APS</small></span>
+      </a>
+      <span class="status"><i></i> Ambiente de consulta</span>
+    </header>
+
+    <main>
+      <section class="intro" id="inicio">
+        <p class="eyebrow">Gestão municipal de saúde</p>
+        <h1>Sistema Hórus de<br><span>Informações da APS</span></h1>
+        <p class="lead">Selecione um município e escolha o tema para acessar os indicadores da Atenção Primária à Saúde.</p>
+      </section>
+
+      <section class="workspace" aria-labelledby="consulta-title">
+        <div class="step-label"><span>01</span> Município</div>
+        <h2 id="consulta-title">Qual município deseja consultar?</h2>
+        <label class="select-label" for="municipio">Município</label>
+        <div class="select-wrap">
+          <select id="municipio">
+            <option value="">Selecione um município</option>
+            <option value="311210">Caparaó · 311210</option>
+            <option value="312370">Engenheiro Caldas · 312370</option>
+            <option value="312580">Fernandes Tourinho · 312580</option>
+            <option value="520890">Goiás · 520890</option>
+            <option value="315800">Santa Maria de Itabira · 315800</option>
+            <option value="316020">Santo Antônio do Itambé · 316020</option>
+            <option value="316294">São José da Barra · 316294</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+        <div class="step-label"><span>02</span> Área de análise</div>
+        <h2>O que você deseja analisar?</h2>
+        <div class="topics" role="group" aria-label="Temas disponíveis">
+          <button data-topic="Cobertura da APS"><b>01</b><span>Cobertura da APS</span><i>→</i></button>
+          <button data-topic="Credenciamento"><b>02</b><span>Credenciamento</span><i>→</i></button>
+          <button data-topic="Financiamento"><b>03</b><span>Financiamento</span><i>→</i></button>
+          <button data-topic="Cofinanciamento"><b>04</b><span>Cofinanciamento</span><i>→</i></button>
+          <button data-topic="Produção"><b>05</b><span>Produção</span><i>→</i></button>
+        </div>
+        <p class="hint" id="hint">Selecione primeiro um município para continuar.</p>
+      </section>
+
+      <section class="detail" id="detalhe" hidden>
+        <button class="back" id="voltar">← Voltar à seleção</button>
+        <p class="eyebrow" id="detail-city"></p>
+        <h1 id="detail-title"></h1>
+        <div class="empty-state">
+          <div class="empty-icon">↗</div>
+          <div><h2>Área preparada para receber os indicadores</h2><p>Os dados deste módulo serão incluídos na próxima etapa de desenvolvimento.</p></div>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>Sistema Hórus</span><span>Dados para decisões mais precisas na APS</span></footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
