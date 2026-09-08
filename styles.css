@@ -18,7 +18,7 @@ body {
 }
 
 .hero {
-  min-height: 265px;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -29,7 +29,7 @@ body {
 
 .hero h1 {
   margin: 0;
-  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-size: clamp(1.6rem, 3.2vw, 2.68rem);
   line-height: 1.08;
   letter-spacing: -0.035em;
   font-weight: 800;
@@ -37,7 +37,7 @@ body {
 
 .hero p {
   margin: 14px 0 0;
-  font-size: clamp(1.05rem, 2vw, 1.65rem);
+  font-size: clamp(0.84rem, 1.6vw, 1.32rem);
   line-height: 1.35;
   font-weight: 400;
 }
@@ -635,7 +635,7 @@ select:focus {
 }
 
 @media (max-width: 560px) {
-  .hero { min-height: 220px; padding: 38px 16px; }
+  .hero { min-height: 160px; padding: 26px 16px; }
   main { width: calc(100% - 16px); padding-top: 28px; }
   .period-options { grid-template-columns: 1fr; }
   .period-value-row { align-items: stretch; flex-direction: column; }
