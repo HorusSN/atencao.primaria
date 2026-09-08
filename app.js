@@ -38,6 +38,7 @@ function gerarDadosDemonstrativos(indicador, meses) {
 }
 
 function renderizarProducao(meses) {
+  const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
   productionIndicators.innerHTML = indicadoresProducao.map((indicador) => {
     const dados = gerarDadosDemonstrativos(indicador, meses);
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
@@ -59,6 +60,46 @@ function renderizarProducao(meses) {
       </div>
     `).join('');
 
+    const largura = Math.max(760, dados.length * 68);
+    const altura = 230;
+    const margem = { esquerda: 42, direita: 22, topo: 32, inferior: 38 };
+    const larguraUtil = largura - margem.esquerda - margem.direita;
+    const alturaUtil = altura - margem.topo - margem.inferior;
+    const escalaMaxima = maiorValor * 1.15;
+    const pontoX = (indice) => margem.esquerda + (dados.length === 1 ? larguraUtil / 2 : (indice * larguraUtil) / (dados.length - 1));
+    const pontoY = (valor) => margem.topo + alturaUtil - (valor / escalaMaxima) * alturaUtil;
+    const pontosAtendimentos = dados.map((item, indice) => `${pontoX(indice)},${pontoY(item.atendimentos)}`).join(' ');
+    const pontosPessoas = dados.map((item, indice) => `${pontoX(indice)},${pontoY(item.pessoas)}`).join(' ');
+    const linhasGrade = [0, 1, 2, 3].map((nivel) => {
+      const y = margem.topo + (nivel * alturaUtil) / 3;
+      return `<line x1="${margem.esquerda}" y1="${y}" x2="${largura - margem.direita}" y2="${y}" class="line-grid" />`;
+    }).join('');
+    const marcadores = dados.map((item, indice) => {
+      const x = pontoX(indice);
+      const yAtendimentos = pontoY(item.atendimentos);
+      const yPessoas = pontoY(item.pessoas);
+      return `
+        <circle cx="${x}" cy="${yAtendimentos}" r="4" class="point-attendances"><title>${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos</title></circle>
+        <text x="${x}" y="${yAtendimentos - 9}" class="line-value value-attendances">${formatarNumero(item.atendimentos)}</text>
+        <circle cx="${x}" cy="${yPessoas}" r="4" class="point-people"><title>${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas</title></circle>
+        <text x="${x}" y="${yPessoas + 16}" class="line-value value-people">${formatarNumero(item.pessoas)}</text>
+        <text x="${x}" y="${altura - 9}" class="line-label">${item.competencia}</text>
+      `;
+    }).join('');
+    const graficoLinhas = `
+      <div class="line-chart-wrap">
+        <svg class="line-chart" viewBox="0 0 ${largura} ${altura}" role="img" aria-label="Evolução mensal de atendimentos e pessoas atendidas de ${indicador.nome}">
+          ${linhasGrade}
+          <polyline points="${pontosAtendimentos}" class="line-series line-attendances" />
+          <polyline points="${pontosPessoas}" class="line-series line-people" />
+          ${marcadores}
+        </svg>
+      </div>
+    `;
+    const grafico = tipoPeriodo === 'anual'
+      ? graficoLinhas
+      : `<div class="column-chart" role="img" aria-label="Gráfico mensal de atendimentos e pessoas atendidas de ${indicador.nome}">${colunas}</div>`;
+
     return `
       <article class="indicator-panel">
         <h3>${indicador.nome}</h3>
@@ -69,13 +110,13 @@ function renderizarProducao(meses) {
           </div>
           <div class="chart-card">
             <div class="chart-heading">
-              <p class="chart-title">Produção por competência</p>
+              <p class="chart-title">${tipoPeriodo === 'anual' ? 'Evolução mensal da produção' : 'Produção por competência'}</p>
               <div class="chart-legend" aria-label="Legenda do gráfico">
                 <span><i class="legend-blue"></i>Atendimentos</span>
                 <span><i class="legend-green"></i>Pessoas atendidas</span>
               </div>
             </div>
-            <div class="column-chart" role="img" aria-label="Gráfico mensal de atendimentos e pessoas atendidas de ${indicador.nome}">${colunas}</div>
+            ${grafico}
           </div>
         </div>
       </article>
