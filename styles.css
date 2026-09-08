@@ -285,6 +285,19 @@ select:focus {
   gap: 18px;
 }
 
+.indicator-note {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border-left: 4px solid #214772;
+  background: #F1F5F8;
+  color: #53657C;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.indicator-note span { display: inline; }
+.indicator-note strong { color: #214772; }
+
 .total-card,
 .chart-card {
   min-width: 0;
@@ -773,6 +786,14 @@ select:focus {
   .indicator-content {
     grid-template-columns: 30% minmax(0, 1fr);
     gap: 3mm;
+  }
+
+  .indicator-note {
+    margin-top: 3mm;
+    padding: 2.5mm 3mm;
+    border-left-width: 1mm;
+    font-size: 6.8pt;
+    line-height: 1.4;
   }
 
   .total-card,
