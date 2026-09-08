@@ -6,6 +6,7 @@ const selector = document.querySelector('.selector');
 const periodFilter = document.querySelector('.period-filter');
 const topics = document.querySelector('.topics');
 const detail = document.querySelector('#detalhe');
+const emptyState = document.querySelector('.empty-state');
 
 const competenciasDisponiveis = [
   ...Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2024`),
@@ -43,7 +44,7 @@ function obterOpcoes(tipo) {
 }
 
 function atualizarModulos() {
-  const habilitar = Boolean(selectMunicipio.value && selectPeriodo.value);
+  const habilitar = Boolean(selectMunicipio.value);
   topicButtons.forEach((button) => {
     button.disabled = !habilitar;
     button.classList.remove('active');
@@ -61,25 +62,29 @@ function preencherPeriodos(tipo) {
     selectPeriodo.appendChild(element);
   });
   selectPeriodo.disabled = false;
-  atualizarModulos();
+  emptyState.hidden = true;
 }
 
 selectMunicipio.addEventListener('change', atualizarModulos);
-selectPeriodo.addEventListener('change', atualizarModulos);
+selectPeriodo.addEventListener('change', () => {
+  const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
+  emptyState.dataset.competencias = periodoSelecionado.dataset.meses || '';
+  emptyState.hidden = !selectPeriodo.value;
+});
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
 
 topicButtons.forEach((button) => {
   button.addEventListener('click', () => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
-    const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
-    const meses = periodoSelecionado.dataset.meses || '';
-
-    document.querySelector('#detail-city').textContent = `${selectMunicipio.options[selectMunicipio.selectedIndex].text} · ${periodoSelecionado.text}`;
+    document.querySelector('#detail-city').textContent = selectMunicipio.options[selectMunicipio.selectedIndex].text;
     document.querySelector('#detail-title').textContent = button.dataset.topic;
-    document.querySelector('.empty-state').dataset.competencias = meses;
+    periodTypeInputs.forEach((input) => { input.checked = false; });
+    selectPeriodo.innerHTML = '<option value="">Selecione primeiro o período</option>';
+    selectPeriodo.disabled = true;
+    emptyState.hidden = true;
+    emptyState.dataset.competencias = '';
     selector.hidden = true;
-    periodFilter.hidden = true;
     topics.hidden = true;
     detail.hidden = false;
     window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
@@ -89,7 +94,6 @@ topicButtons.forEach((button) => {
 document.querySelector('#voltar').addEventListener('click', () => {
   detail.hidden = true;
   selector.hidden = false;
-  periodFilter.hidden = false;
   topics.hidden = false;
   topicButtons.forEach((button) => button.classList.remove('active'));
   window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
