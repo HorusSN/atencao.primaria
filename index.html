@@ -28,44 +28,47 @@
 
     <section class="detail" id="detalhe" hidden>
       <h2 id="detail-title"></h2>
-      <section class="selector internal-municipality" aria-label="Seleção do município">
-        <label for="municipio">Município</label>
-        <div class="select-wrap">
-          <select id="municipio">
-            <option value="">Selecione o município</option>
-            <option value="311210">Caparaó</option>
-            <option value="312370">Engenheiro Caldas</option>
-            <option value="312580">Fernandes Tourinho</option>
-            <option value="520890">Goiás</option>
-            <option value="315800">Santa Maria de Itabira</option>
-            <option value="316020">Santo Antônio do Itambé</option>
-            <option value="316294">São José da Barra</option>
-          </select>
-        </div>
-      </section>
-      <section class="period-filter" aria-label="Seleção do período">
-        <fieldset class="period-types">
-          <legend>Período</legend>
-          <div class="period-options">
-            <label><input type="radio" name="periodo-tipo" value="anual" disabled><span>Anual</span></label>
-            <label><input type="radio" name="periodo-tipo" value="quadrimestral" disabled><span>Quadrimestral</span></label>
-            <label><input type="radio" name="periodo-tipo" value="mensal" disabled><span>Mensal</span></label>
-          </div>
-        </fieldset>
-
-        <div class="period-value">
-          <label for="periodo-valor">Referência</label>
-          <div class="period-value-row">
-            <div class="select-wrap">
-              <select id="periodo-valor" disabled>
-                <option value="">Selecione primeiro o município</option>
-              </select>
+      <div class="filter-layout">
+        <section class="period-filter" aria-label="Seleção do período">
+          <fieldset class="period-types">
+            <legend>Período</legend>
+            <div class="period-options">
+              <label><input type="radio" name="periodo-tipo" value="anual" disabled><span>Anual</span></label>
+              <label><input type="radio" name="periodo-tipo" value="quadrimestral" disabled><span>Quadrimestral</span></label>
+              <label><input type="radio" name="periodo-tipo" value="mensal" disabled><span>Mensal</span></label>
             </div>
-            <button class="print-report" id="imprimir" type="button" disabled>Imprimir</button>
-            <button class="back" id="voltar">Voltar</button>
+          </fieldset>
+
+          <div class="period-value">
+            <label for="periodo-valor">Referência</label>
+            <div class="period-value-row">
+              <div class="select-wrap">
+                <select id="periodo-valor" disabled>
+                  <option value="">Selecione primeiro o município</option>
+                </select>
+              </div>
+              <button class="print-report" id="imprimir" type="button" disabled>Imprimir</button>
+              <button class="back" id="voltar">Voltar</button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        <section class="selector internal-municipality" aria-label="Seleção do município">
+          <label for="municipio">Município</label>
+          <div class="select-wrap">
+            <select id="municipio">
+              <option value="">Selecione o município</option>
+              <option value="311210">Caparaó</option>
+              <option value="312370">Engenheiro Caldas</option>
+              <option value="312580">Fernandes Tourinho</option>
+              <option value="520890">Goiás</option>
+              <option value="315800">Santa Maria de Itabira</option>
+              <option value="316020">Santo Antônio do Itambé</option>
+              <option value="316294">São José da Barra</option>
+            </select>
+          </div>
+        </section>
+      </div>
       <header class="print-report-header" aria-hidden="true">
         <div class="print-brand">
           <strong>HÓRUS SERVIÇOS &amp; NEGÓCIOS</strong>
