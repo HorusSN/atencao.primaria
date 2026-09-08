@@ -18,40 +18,38 @@
   </header>
 
   <main>
-    <section class="selector" aria-label="Seleção do município">
-      <label for="municipio">Município</label>
-      <div class="select-wrap">
-        <select id="municipio">
-          <option value="">Selecione o município</option>
-          <option value="311210">Caparaó</option>
-          <option value="312370">Engenheiro Caldas</option>
-          <option value="312580">Fernandes Tourinho</option>
-          <option value="520890">Goiás</option>
-          <option value="315800">Santa Maria de Itabira</option>
-          <option value="316020">Santo Antônio do Itambé</option>
-          <option value="316294">São José da Barra</option>
-        </select>
-      </div>
-    </section>
-
     <section class="topics" aria-label="Módulos do sistema">
-      <button data-topic="Cobertura da APS" disabled>Cobertura da APS</button>
-      <button data-topic="Credenciamento" disabled>Credenciamento</button>
-      <button data-topic="Financiamento" disabled>Financiamento</button>
-      <button data-topic="Cofinanciamento" disabled>Cofinanciamento</button>
-      <button data-topic="Produção" disabled>Produção</button>
+      <button data-topic="Cobertura da APS">Cobertura da APS</button>
+      <button data-topic="Credenciamento">Credenciamento</button>
+      <button data-topic="Financiamento">Financiamento</button>
+      <button data-topic="Cofinanciamento">Cofinanciamento</button>
+      <button data-topic="Produção">Produção</button>
     </section>
 
     <section class="detail" id="detalhe" hidden>
       <h2 id="detail-title"></h2>
-      <p id="detail-city"></p>
+      <section class="selector internal-municipality" aria-label="Seleção do município">
+        <label for="municipio">Município</label>
+        <div class="select-wrap">
+          <select id="municipio">
+            <option value="">Selecione o município</option>
+            <option value="311210">Caparaó</option>
+            <option value="312370">Engenheiro Caldas</option>
+            <option value="312580">Fernandes Tourinho</option>
+            <option value="520890">Goiás</option>
+            <option value="315800">Santa Maria de Itabira</option>
+            <option value="316020">Santo Antônio do Itambé</option>
+            <option value="316294">São José da Barra</option>
+          </select>
+        </div>
+      </section>
       <section class="period-filter" aria-label="Seleção do período">
         <fieldset class="period-types">
           <legend>Período</legend>
           <div class="period-options">
-            <label><input type="radio" name="periodo-tipo" value="anual"><span>Anual</span></label>
-            <label><input type="radio" name="periodo-tipo" value="quadrimestral"><span>Quadrimestral</span></label>
-            <label><input type="radio" name="periodo-tipo" value="mensal"><span>Mensal</span></label>
+            <label><input type="radio" name="periodo-tipo" value="anual" disabled><span>Anual</span></label>
+            <label><input type="radio" name="periodo-tipo" value="quadrimestral" disabled><span>Quadrimestral</span></label>
+            <label><input type="radio" name="periodo-tipo" value="mensal" disabled><span>Mensal</span></label>
           </div>
         </fieldset>
 
@@ -60,7 +58,7 @@
           <div class="period-value-row">
             <div class="select-wrap">
               <select id="periodo-valor" disabled>
-                <option value="">Selecione primeiro o período</option>
+                <option value="">Selecione primeiro o município</option>
               </select>
             </div>
             <button class="print-report" id="imprimir" type="button" disabled>Imprimir</button>
