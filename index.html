@@ -43,7 +43,6 @@
     </section>
 
     <section class="detail" id="detalhe" hidden>
-      <button class="back" id="voltar">Voltar</button>
       <h2 id="detail-title"></h2>
       <p id="detail-city"></p>
       <section class="period-filter" aria-label="Seleção do período">
@@ -58,10 +57,13 @@
 
         <div class="period-value">
           <label for="periodo-valor">Referência</label>
-          <div class="select-wrap">
-            <select id="periodo-valor" disabled>
-              <option value="">Selecione primeiro o período</option>
-            </select>
+          <div class="period-value-row">
+            <div class="select-wrap">
+              <select id="periodo-valor" disabled>
+                <option value="">Selecione primeiro o período</option>
+              </select>
+            </div>
+            <button class="back" id="voltar">Voltar</button>
           </div>
         </div>
       </section>
