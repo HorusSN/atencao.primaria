@@ -420,6 +420,85 @@ select:focus {
   text-anchor: middle;
 }
 
+.acs-detail-panel {
+  margin-top: 30px;
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--navy);
+  color: var(--white);
+}
+
+.acs-detail-panel > h3 {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+}
+
+.acs-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(145px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.acs-summary-card {
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 17px;
+  border-top: 5px solid;
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--navy);
+}
+
+.acs-summary-card span {
+  color: #687585;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.acs-summary-card strong { font-size: 1.65rem; line-height: 1; }
+.acs-summary-card.green { border-color: var(--green); }
+.acs-summary-card.red { border-color: #E24A4A; }
+.acs-summary-card.yellow { border-color: #F2B705; }
+.acs-summary-card.blue { border-color: var(--blue); }
+.acs-summary-card.navy { border-color: #62758B; }
+
+.acs-chart-card {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.legend-realizadas { background: var(--green); }
+.legend-recusadas { background: #E24A4A; }
+.legend-ausentes { background: #F2B705; }
+.acs-line-realizadas { stroke: var(--green); }
+.acs-line-recusadas { stroke: #E24A4A; }
+.acs-line-ausentes { stroke: #F2B705; }
+.acs-point { stroke: var(--white); stroke-width: 2; }
+.acs-realizadas { fill: var(--green); }
+.acs-recusadas { fill: #E24A4A; }
+.acs-ausentes { fill: #F2B705; }
+
+.acs-line-value {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.acs-value-realizadas { fill: #16895D; }
+.acs-value-recusadas { fill: #C43838; }
+.acs-value-ausentes { fill: #A97800; }
+
+.acs-line-chart { height: 255px; }
+
 @media (max-width: 860px) {
   .period-filter { grid-template-columns: 1fr; }
   .indicator-content { grid-template-columns: 1fr; }
@@ -433,6 +512,7 @@ select:focus {
   main { width: min(100% - 28px, 1180px); padding-top: 28px; }
   .period-options { grid-template-columns: 1fr; }
   .indicator-panel { padding: 16px; }
+  .acs-detail-panel { padding: 16px; }
   .chart-heading { align-items: flex-start; flex-direction: column; }
   .chart-legend { justify-content: flex-start; }
   .total-card { grid-template-columns: 1fr; }
