@@ -471,7 +471,7 @@ select:focus {
 
 .acs-chart-card {
   margin-top: 16px;
-  padding: 20px;
+  padding: 20px 12px 14px;
   border-radius: 12px;
   background: var(--white);
 }
@@ -492,13 +492,20 @@ select:focus {
   font-size: 10px;
   font-weight: 700;
   text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--white);
+  stroke-width: 4px;
+  stroke-linejoin: round;
 }
 
 .acs-value-realizadas { fill: #16895D; }
 .acs-value-recusadas { fill: #C43838; }
 .acs-value-ausentes { fill: #A97800; }
 
-.acs-line-chart { height: 255px; }
+.acs-line-chart {
+  width: max(100%, 1100px);
+  height: 285px;
+}
 
 @media (max-width: 860px) {
   .period-filter { grid-template-columns: 1fr; }
