@@ -290,13 +290,36 @@ select:focus {
   overflow-x: auto;
 }
 
+.chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 .chart-title {
-  margin: 0 0 20px;
+  margin: 0;
   color: #687585;
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
 }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  color: #687585;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend i { width: 9px; height: 9px; border-radius: 3px; }
+.legend-blue { background: var(--blue); }
+.legend-green { background: var(--green); }
 
 .column-chart {
   min-width: 390px;
@@ -309,10 +332,28 @@ select:focus {
   background: repeating-linear-gradient(to bottom, transparent 0, transparent 48px, #EDF0F2 49px, transparent 50px);
 }
 
-.chart-column {
+.month-group {
   height: 100%;
-  flex: 1 1 52px;
-  min-width: 42px;
+  flex: 1 1 84px;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.grouped-bars {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+}
+
+.series-column {
+  height: 100%;
+  width: min(34px, 43%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -327,11 +368,13 @@ select:focus {
 }
 
 .column-bar {
-  width: min(54px, 70%);
+  width: 100%;
   min-height: 5px;
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, var(--blue), #145DBD);
+  border-radius: 5px 5px 0 0;
 }
+
+.column-bar.attendances { background: linear-gradient(180deg, var(--blue), #145DBD); }
+.column-bar.people { background: linear-gradient(180deg, var(--green), #1D9D6C); }
 
 .column-label {
   min-height: 32px;
@@ -354,6 +397,8 @@ select:focus {
   main { width: min(100% - 28px, 1180px); padding-top: 28px; }
   .period-options { grid-template-columns: 1fr; }
   .indicator-panel { padding: 16px; }
+  .chart-heading { align-items: flex-start; flex-direction: column; }
+  .chart-legend { justify-content: flex-start; }
   .total-card { grid-template-columns: 1fr; }
   .total-metric + .total-metric { border-top: 1px solid var(--light); border-left: 5px solid var(--green); }
   .topics { grid-template-columns: 1fr; }
