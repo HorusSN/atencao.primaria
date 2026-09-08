@@ -228,13 +228,6 @@ select:focus {
 .detail .period-filter { margin: 32px 0; }
 .empty-state { padding: 24px; border-radius: 8px; background: var(--light); }
 
-.demo-notice {
-  margin-bottom: 18px;
-  color: #596574;
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
 .indicator-panel {
   margin-top: 22px;
   padding: 24px;
