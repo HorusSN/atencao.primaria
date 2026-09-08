@@ -489,7 +489,7 @@ select:focus {
 
 .acs-line-value {
   font-family: "Inter", Arial, sans-serif;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
   text-anchor: middle;
   paint-order: stroke;
@@ -506,6 +506,8 @@ select:focus {
   width: max(100%, 1100px);
   height: 285px;
 }
+
+.acs-line-chart .line-label { font-size: 13px; }
 
 @media (max-width: 860px) {
   .period-filter { grid-template-columns: 1fr; }
