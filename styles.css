@@ -48,7 +48,10 @@ main {
   padding: 46px 0 70px;
 }
 
-main:has(> .detail:not([hidden])) { padding-top: 18px; }
+main:has(> .detail:not([hidden])) {
+  width: min(1480px, calc(100% - 96px));
+  padding-top: 18px;
+}
 
 .selector {
   max-width: 640px;
@@ -250,14 +253,14 @@ select:focus {
 .detail h2 {
   margin: 0;
   color: var(--navy);
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-size: clamp(1.26rem, 2.1vw, 1.82rem);
   text-align: center;
 }
 
 .detail #detail-city {
   margin: 8px 0 24px;
   color: #1A73E9;
-  font-size: clamp(1.26rem, 2.1vw, 1.82rem);
+  font-size: clamp(0.88rem, 1.47vw, 1.27rem);
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -637,6 +640,7 @@ select:focus {
 @media (max-width: 560px) {
   .hero { min-height: 160px; padding: 26px 16px; }
   main { width: calc(100% - 16px); padding-top: 28px; }
+  main:has(> .detail:not([hidden])) { width: calc(100% - 24px); }
   .period-options { grid-template-columns: 1fr; }
   .period-value-row { align-items: stretch; flex-direction: column; }
   .back, .print-report { width: 100%; height: 50px; }
