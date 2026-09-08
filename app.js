@@ -25,6 +25,16 @@ const indicadoresProducao = [
   { nome: 'Visita Domiciliar (ACS)', baseAtendimentos: 1248, basePessoas: 903 }
 ];
 
+const municipioUf = {
+  '311210': 'MG',
+  '312370': 'MG',
+  '312580': 'MG',
+  '520890': 'GO',
+  '315800': 'MG',
+  '316020': 'MG',
+  '316294': 'MG'
+};
+
 const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
 
 function gerarDadosDemonstrativos(indicador, meses) {
@@ -120,6 +130,7 @@ function renderizarDetalhamentoVisitas(meses) {
 
 function renderizarProducao(meses) {
   const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
+  const periodoLabel = selectPeriodo.options[selectPeriodo.selectedIndex]?.text || '';
   const quadrosPrincipais = indicadoresProducao.map((indicador) => {
     const dados = gerarDadosDemonstrativos(indicador, meses);
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
@@ -177,9 +188,31 @@ function renderizarProducao(meses) {
         </svg>
       </div>
     `;
+    const barrasHorizontais = dados.map((item) => {
+      const larguraAtendimentos = Math.max(5, (item.atendimentos / maiorValor) * 100);
+      const larguraPessoas = Math.max(5, (item.pessoas / maiorValor) * 100);
+      return `
+        <div class="horizontal-chart-group">
+          <span class="horizontal-competence">${item.competencia}</span>
+          <div class="horizontal-series-row">
+            <span>Atendimentos</span>
+            <div class="horizontal-track"><div class="horizontal-fill blue" style="width:${larguraAtendimentos}%"></div></div>
+            <strong>${formatarNumero(item.atendimentos)}</strong>
+          </div>
+          <div class="horizontal-series-row">
+            <span>Pessoas atendidas</span>
+            <div class="horizontal-track"><div class="horizontal-fill green" style="width:${larguraPessoas}%"></div></div>
+            <strong>${formatarNumero(item.pessoas)}</strong>
+          </div>
+        </div>
+      `;
+    }).join('');
+    const graficoHorizontal = `<div class="horizontal-bar-chart" role="img" aria-label="Produção mensal de ${indicador.nome}">${barrasHorizontais}</div>`;
     const grafico = tipoPeriodo === 'anual'
       ? graficoLinhas
-      : `<div class="column-chart" role="img" aria-label="Gráfico mensal de atendimentos e pessoas atendidas de ${indicador.nome}">${colunas}</div>`;
+      : tipoPeriodo === 'mensal'
+        ? graficoHorizontal
+        : `<div class="column-chart" role="img" aria-label="Gráfico mensal de atendimentos e pessoas atendidas de ${indicador.nome}">${colunas}</div>`;
 
     return `
       <article class="indicator-panel">
@@ -191,7 +224,7 @@ function renderizarProducao(meses) {
           </div>
           <div class="chart-card">
             <div class="chart-heading">
-              <p class="chart-title">${tipoPeriodo === 'anual' ? 'Evolução mensal da produção' : 'Produção por competência'}</p>
+              <p class="chart-title">Produção realizada no período de ${periodoLabel}</p>
               <div class="chart-legend" aria-label="Legenda do gráfico">
                 <span><i class="legend-blue"></i>Atendimentos</span>
                 <span><i class="legend-green"></i>Pessoas atendidas</span>
@@ -275,8 +308,13 @@ topicButtons.forEach((button) => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
-    document.querySelector('#detail-city').textContent = selectMunicipio.options[selectMunicipio.selectedIndex].text;
-    document.querySelector('#detail-title').textContent = button.dataset.topic;
+    const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
+    const uf = municipioUf[selectMunicipio.value] || '';
+    document.querySelector('#detail-city').textContent = currentTopic === 'Produção' ? '' : `${nomeMunicipio}/${uf}`;
+    document.querySelector('#detail-city').hidden = currentTopic === 'Produção';
+    document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
+      ? `Produção da Atenção Primária: ${nomeMunicipio}/${uf}`
+      : button.dataset.topic;
     periodTypeInputs.forEach((input) => { input.checked = false; });
     selectPeriodo.innerHTML = '<option value="">Selecione primeiro o período</option>';
     selectPeriodo.disabled = true;
