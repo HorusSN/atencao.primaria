@@ -210,8 +210,21 @@ select:focus {
   cursor: pointer;
 }
 
-.detail p { margin: 0 0 6px; color: var(--blue); font-weight: 700; }
-.detail h2 { margin: 0 0 24px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+.detail h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  text-align: center;
+}
+
+.detail #detail-city {
+  margin: 8px 0 24px;
+  color: #1A73E9;
+  font-size: clamp(1.26rem, 2.1vw, 1.82rem);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
 .detail .period-filter { margin: 32px 0; }
 .empty-state { padding: 24px; border-radius: 8px; background: var(--light); }
 
