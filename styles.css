@@ -705,10 +705,14 @@ select:focus {
   }
 
   body {
+    width: 210mm !important;
+    max-width: 210mm !important;
     min-height: 0;
+    margin: 0 !important;
     background: #FFFFFF;
     color: var(--navy);
     font-size: 10pt;
+    overflow: visible !important;
   }
 
   .hero,
@@ -725,13 +729,17 @@ select:focus {
   .dashboard-footer { display: none !important; }
 
   main {
-    width: 100%;
-    margin: 0;
-    padding: 0 10mm;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 10mm !important;
   }
 
   .detail {
     display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
     margin: 0;
     padding: 0;
     border: 0;
@@ -798,10 +806,18 @@ select:focus {
   }
 
   .production-dashboard,
-  #production-indicators { display: block !important; }
+  #production-indicators {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
 
   .indicator-panel,
   .acs-detail-panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
     break-inside: avoid-page;
     page-break-inside: avoid;
     margin: 0 0 6mm;
@@ -821,6 +837,8 @@ select:focus {
   }
 
   .indicator-content {
+    width: 100% !important;
+    min-width: 0 !important;
     grid-template-columns: 30% minmax(0, 1fr);
     gap: 3mm;
   }
@@ -836,6 +854,9 @@ select:focus {
   .total-card,
   .chart-card,
   .acs-chart-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     box-shadow: none;
     border: 0.5pt solid #DFE5EA;
   }
