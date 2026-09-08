@@ -9,6 +9,7 @@ const detail = document.querySelector('#detalhe');
 const emptyState = document.querySelector('.empty-state');
 const productionDashboard = document.querySelector('#production-dashboard');
 const productionIndicators = document.querySelector('#production-indicators');
+const printButton = document.querySelector('#imprimir');
 let currentTopic = '';
 
 const competenciasDisponiveis = [
@@ -36,6 +37,24 @@ const municipioUf = {
 };
 
 const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
+
+function atualizarCabecalhoRelatorio() {
+  const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
+  const uf = municipioUf[selectMunicipio.value] || '';
+  const periodo = selectPeriodo.options[selectPeriodo.selectedIndex]?.text || '';
+  const agora = new Date();
+  const dataHora = agora.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+
+  document.querySelector('#print-city').textContent = `${nomeMunicipio}/${uf}`;
+  document.querySelector('#print-period').textContent = periodo;
+  document.querySelector('#print-issued-at').textContent = `Documento emitido em: ${dataHora}`;
+}
 
 function gerarDadosDemonstrativos(indicador, meses) {
   return meses.map((competencia, indice) => {
@@ -299,6 +318,7 @@ function preencherPeriodos(tipo) {
   selectPeriodo.disabled = false;
   emptyState.hidden = true;
   productionDashboard.hidden = true;
+  printButton.disabled = true;
 }
 
 selectMunicipio.addEventListener('change', atualizarModulos);
@@ -309,6 +329,7 @@ selectPeriodo.addEventListener('change', () => {
   const referenciaSelecionada = Boolean(selectPeriodo.value);
   emptyState.hidden = !referenciaSelecionada || currentTopic === 'Produção';
   productionDashboard.hidden = !referenciaSelecionada || currentTopic !== 'Produção';
+  printButton.disabled = !referenciaSelecionada || currentTopic !== 'Produção';
   if (referenciaSelecionada && currentTopic === 'Produção') renderizarProducao(meses);
 });
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
@@ -331,12 +352,30 @@ topicButtons.forEach((button) => {
     emptyState.hidden = true;
     emptyState.dataset.competencias = '';
     productionDashboard.hidden = true;
+    printButton.disabled = true;
     productionIndicators.innerHTML = '';
     selector.hidden = true;
     topics.hidden = true;
     detail.hidden = false;
     window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
   });
+});
+
+printButton.addEventListener('click', () => {
+  if (printButton.disabled || productionDashboard.hidden) return;
+  atualizarCabecalhoRelatorio();
+  const tituloAnterior = document.title;
+  const municipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
+  const periodo = selectPeriodo.options[selectPeriodo.selectedIndex].text;
+  document.title = `Relatório APS - ${municipio} - ${periodo}`;
+  window.addEventListener('afterprint', () => {
+    document.title = tituloAnterior;
+  }, { once: true });
+  window.print();
+});
+
+window.addEventListener('beforeprint', () => {
+  if (!productionDashboard.hidden) atualizarCabecalhoRelatorio();
 });
 
 document.querySelector('#voltar').addEventListener('click', () => {
