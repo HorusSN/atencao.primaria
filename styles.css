@@ -423,9 +423,10 @@ select:focus {
 .acs-detail-panel {
   margin-top: 30px;
   padding: 24px;
+  border: 1px solid #D7DEE4;
   border-radius: 14px;
-  background: var(--navy);
-  color: var(--white);
+  background: #F8FAFB;
+  color: var(--navy);
 }
 
 .acs-detail-panel > h3 {
