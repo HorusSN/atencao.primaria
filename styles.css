@@ -212,6 +212,7 @@ select:focus {
 
 .detail p { margin: 0 0 6px; color: var(--blue); font-weight: 700; }
 .detail h2 { margin: 0 0 24px; font-size: clamp(1.8rem, 3vw, 2.6rem); }
+.detail .period-filter { margin: 32px 0; }
 .empty-state { padding: 24px; border-radius: 8px; background: var(--light); }
 
 @media (max-width: 860px) {
