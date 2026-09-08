@@ -614,7 +614,7 @@ select:focus {
     margin: 31mm 0 22mm;
 
     @top-center {
-      content: "HÓRUS SERVIÇOS & NEGÓCIOS\\A Sistema de Informações da Atenção Primária";
+      content: "HÓRUS SERVIÇOS & NEGÓCIOS\A Sistema de Informações da Atenção Primária à Saúde (APS)";
       width: 178mm;
       padding: 0 16mm;
       background: #4A9BD0;
@@ -745,11 +745,6 @@ select:focus {
     color: #636B75;
     font-size: 15pt;
     text-transform: uppercase;
-  }
-
-  .print-report-title p {
-    margin: 1.5mm 0 0;
-    font-size: 11pt;
   }
 
   .production-dashboard,
