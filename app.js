@@ -55,7 +55,24 @@ function atualizarCabecalhoRelatorio() {
   document.querySelector('#print-city').textContent = `${nomeMunicipio}/${uf}`;
   document.querySelector('#print-period').textContent = periodo;
   document.querySelector('#print-issued-at').textContent = `Documento emitido em: ${dataHora}`;
-  document.querySelector('#print-footer-issued').textContent = `Emitido eletronicamente por HSN em ${dataHora}.`;
+
+  let estiloPagina = document.querySelector('#print-page-style');
+  if (!estiloPagina) {
+    estiloPagina = document.createElement('style');
+    estiloPagina.id = 'print-page-style';
+    document.head.appendChild(estiloPagina);
+  }
+  estiloPagina.textContent = `
+    @media print {
+      @page {
+        @bottom-left {
+          content: "Documento gerado eletronicamente a partir do acesso do usuário ao Sistema Hórus de Informações da Atenção Primária.\\A Emitido eletronicamente por HSN em ${dataHora}.";
+          white-space: pre-wrap;
+          width: 155mm;
+        }
+      }
+    }
+  `;
 }
 
 function gerarDadosDemonstrativos(indicador, meses) {
