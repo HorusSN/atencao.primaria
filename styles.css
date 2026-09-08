@@ -50,7 +50,7 @@ main {
 
 .selector {
   max-width: 640px;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
 }
 
 .selector label {
@@ -59,6 +59,70 @@ main {
   color: var(--navy);
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.period-filter {
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(280px, 0.75fr);
+  gap: 24px;
+  align-items: end;
+  margin-bottom: 38px;
+}
+
+.period-types {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.period-types legend,
+.period-value > label {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--navy);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.period-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.period-options label { cursor: pointer; }
+.period-options input { position: absolute; opacity: 0; pointer-events: none; }
+
+.period-options span {
+  min-height: 60px;
+  display: grid;
+  place-items: center;
+  padding: 10px 14px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--navy);
+  font-size: 0.92rem;
+  font-weight: 700;
+  box-shadow: 0 8px 26px rgba(14, 27, 43, 0.08);
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.period-options input:focus-visible + span {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(26, 115, 233, 0.15);
+}
+
+.period-options input:checked + span {
+  border-color: var(--green);
+  background: var(--green);
+}
+
+.period-value select:disabled {
+  color: #7A8490;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
 }
 
 .select-wrap { position: relative; }
@@ -151,12 +215,14 @@ select:focus {
 .empty-state { padding: 24px; border-radius: 8px; background: var(--light); }
 
 @media (max-width: 860px) {
+  .period-filter { grid-template-columns: 1fr; }
   .topics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 560px) {
   .hero { min-height: 220px; padding: 38px 22px; }
   main { width: min(100% - 28px, 1180px); padding-top: 28px; }
+  .period-options { grid-template-columns: 1fr; }
   .topics { grid-template-columns: 1fr; }
   .topics button { min-height: 74px; }
 }
