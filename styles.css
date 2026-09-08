@@ -384,6 +384,42 @@ select:focus {
   white-space: nowrap;
 }
 
+.line-chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.line-chart {
+  width: max(100%, 760px);
+  height: 230px;
+  display: block;
+  overflow: visible;
+}
+
+.line-grid { stroke: #E5E9EC; stroke-width: 1; }
+.line-series { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.line-attendances { stroke: var(--blue); }
+.line-people { stroke: var(--green); }
+.point-attendances { fill: var(--blue); stroke: var(--white); stroke-width: 2; }
+.point-people { fill: var(--green); stroke: var(--white); stroke-width: 2; }
+
+.line-value {
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.value-attendances { fill: #145DBD; }
+.value-people { fill: #16895D; }
+
+.line-label {
+  fill: #687585;
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 9px;
+  text-anchor: middle;
+}
+
 @media (max-width: 860px) {
   .period-filter { grid-template-columns: 1fr; }
   .indicator-content { grid-template-columns: 1fr; }
