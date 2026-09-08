@@ -19,12 +19,39 @@ const competenciasDisponiveis = [
 ];
 
 const indicadoresProducao = [
-  { nome: 'Consultas Médicas', baseAtendimentos: 428, basePessoas: 351 },
-  { nome: 'Consultas de Enfermagem', baseAtendimentos: 512, basePessoas: 406 },
-  { nome: 'Atendimentos Odontológicos', baseAtendimentos: 236, basePessoas: 198 },
-  { nome: 'Procedimentos', baseAtendimentos: 684, basePessoas: 472 },
-  { nome: 'Visita Domiciliar (ACS)', baseAtendimentos: 1248, basePessoas: 903 }
+  {
+    nome: 'Consultas Médicas',
+    baseAtendimentos: 428,
+    basePessoas: 351,
+    descricao: 'Apresenta o somatório de todas as consultas médicas realizadas na Atenção Primária à Saúde (APS)'
+  },
+  {
+    nome: 'Consultas de Enfermagem',
+    baseAtendimentos: 512,
+    basePessoas: 406,
+    descricao: 'Apresenta o somatório de todas as consultas de enfermagem realizadas na Atenção Primária à Saúde (APS)'
+  },
+  {
+    nome: 'Atendimentos Odontológicos',
+    baseAtendimentos: 236,
+    basePessoas: 198,
+    descricao: 'Apresenta o somatório de todas as consultas odontológicas realizadas na Atenção Primária à Saúde (APS)'
+  },
+  {
+    nome: 'Procedimentos',
+    baseAtendimentos: 684,
+    basePessoas: 472,
+    descricao: 'Apresenta a produção consolidada de procedimentos realizados na Atenção Primária à Saúde (APS)'
+  },
+  {
+    nome: 'Visita Domiciliar (ACS)',
+    baseAtendimentos: 1248,
+    basePessoas: 903,
+    descricao: 'Apresenta as visitas domiciliares de acompanhamento geral realizadas por Agentes Comunitários de Saúde (ACS)'
+  }
 ];
+
+const fonteSiaps = 'Sistema de Informação da Atenção Primária em Saúde (SIAPS), e-Gestor AB, Secretaria de Atenção Primária à Saúde (SAPS), Ministério da Saúde (MS).';
 
 const municipioUf = {
   '311210': 'MG',
@@ -194,6 +221,7 @@ function renderizarDetalhamentoVisitas(mesesResumo, mesesGrafico = mesesResumo) 
 function renderizarProducao(meses) {
   const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
   const periodoLabel = selectPeriodo.options[selectPeriodo.selectedIndex]?.text || '';
+  const periodoRelatorio = formatarPeriodoRelatorio();
   const quadrosPrincipais = indicadoresProducao.map((indicador) => {
     const dados = gerarDadosDemonstrativos(indicador, meses);
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
@@ -296,6 +324,10 @@ function renderizarProducao(meses) {
             ${grafico}
           </div>
         </div>
+        <p class="indicator-note">
+          ${indicador.descricao} durante o período de referência analisado, que compreende: ${periodoRelatorio}.
+          <span><strong>Fonte:</strong> ${fonteSiaps}</span>
+        </p>
       </article>
     `;
   }).join('');
