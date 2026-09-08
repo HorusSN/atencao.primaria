@@ -42,11 +42,19 @@ function renderizarProducao(meses) {
     const dados = gerarDadosDemonstrativos(indicador, meses);
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
     const totalPessoas = dados.reduce((total, item) => total + item.pessoas, 0);
-    const maiorValor = Math.max(...dados.map((item) => item.atendimentos), 1);
+    const maiorValor = Math.max(...dados.flatMap((item) => [item.atendimentos, item.pessoas]), 1);
     const colunas = dados.map((item) => `
-      <div class="chart-column">
-        <span class="column-value">${formatarNumero(item.atendimentos)}</span>
-        <div class="column-bar" style="height:${Math.max(5, (item.atendimentos / maiorValor) * 140)}px" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
+      <div class="month-group">
+        <div class="grouped-bars">
+          <div class="series-column">
+            <span class="column-value">${formatarNumero(item.atendimentos)}</span>
+            <div class="column-bar attendances" style="height:${Math.max(5, (item.atendimentos / maiorValor) * 140)}px" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
+          </div>
+          <div class="series-column">
+            <span class="column-value">${formatarNumero(item.pessoas)}</span>
+            <div class="column-bar people" style="height:${Math.max(5, (item.pessoas / maiorValor) * 140)}px" title="${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas"></div>
+          </div>
+        </div>
         <span class="column-label">${item.competencia}</span>
       </div>
     `).join('');
@@ -60,8 +68,14 @@ function renderizarProducao(meses) {
             <div class="total-metric"><span>Número de Pessoas Atendidas</span><strong>${formatarNumero(totalPessoas)}</strong></div>
           </div>
           <div class="chart-card">
-            <p class="chart-title">Atendimentos por competência</p>
-            <div class="column-chart" role="img" aria-label="Gráfico de atendimentos mensais de ${indicador.nome}">${colunas}</div>
+            <div class="chart-heading">
+              <p class="chart-title">Produção por competência</p>
+              <div class="chart-legend" aria-label="Legenda do gráfico">
+                <span><i class="legend-blue"></i>Atendimentos</span>
+                <span><i class="legend-green"></i>Pessoas atendidas</span>
+              </div>
+            </div>
+            <div class="column-chart" role="img" aria-label="Gráfico mensal de atendimentos e pessoas atendidas de ${indicador.nome}">${colunas}</div>
           </div>
         </div>
       </article>
