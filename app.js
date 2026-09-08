@@ -48,12 +48,14 @@ function atualizarCabecalhoRelatorio() {
     month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    second: '2-digit'
   });
 
   document.querySelector('#print-city').textContent = `${nomeMunicipio}/${uf}`;
   document.querySelector('#print-period').textContent = periodo;
   document.querySelector('#print-issued-at').textContent = `Documento emitido em: ${dataHora}`;
+  document.querySelector('#print-footer-issued').textContent = `Emitido eletronicamente por HSN em ${dataHora}.`;
 }
 
 function gerarDadosDemonstrativos(indicador, meses) {
