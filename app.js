@@ -38,10 +38,33 @@ const municipioUf = {
 
 const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
 
+function formatarPeriodoRelatorio() {
+  const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
+  const valor = selectPeriodo.value;
+  const meses = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
+
+  if (tipoPeriodo === 'anual') return `Ano de ${valor}`;
+
+  if (tipoPeriodo === 'quadrimestral') {
+    const [quadrimestre, ano] = valor.split('-');
+    return `${quadrimestre}º Quadrimestre de ${ano}`;
+  }
+
+  if (tipoPeriodo === 'mensal') {
+    const [mes, ano] = valor.split('/');
+    return `${meses[Number(mes) - 1]} de ${ano}`;
+  }
+
+  return '';
+}
+
 function atualizarCabecalhoRelatorio() {
   const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const uf = municipioUf[selectMunicipio.value] || '';
-  const periodo = selectPeriodo.options[selectPeriodo.selectedIndex]?.text || '';
+  const periodo = formatarPeriodoRelatorio();
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
     day: '2-digit',
