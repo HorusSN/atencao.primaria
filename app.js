@@ -2,7 +2,6 @@ const selectMunicipio = document.querySelector('#municipio');
 const periodTypeInputs = [...document.querySelectorAll('input[name="periodo-tipo"]')];
 const selectPeriodo = document.querySelector('#periodo-valor');
 const topicButtons = [...document.querySelectorAll('[data-topic]')];
-const selector = document.querySelector('.selector');
 const periodFilter = document.querySelector('.period-filter');
 const topics = document.querySelector('.topics');
 const detail = document.querySelector('#detalhe');
@@ -371,15 +370,25 @@ function obterOpcoes(tipo) {
   })).filter((item) => item.meses.length === 4);
 }
 
-function atualizarModulos() {
-  const habilitar = Boolean(selectMunicipio.value);
-  topicButtons.forEach((button) => {
-    button.disabled = !habilitar;
-    button.classList.remove('active');
+function atualizarMunicipioSelecionado() {
+  const municipioSelecionado = Boolean(selectMunicipio.value);
+  periodTypeInputs.forEach((input) => {
+    input.disabled = !municipioSelecionado;
+    input.checked = false;
   });
+  selectPeriodo.innerHTML = municipioSelecionado
+    ? '<option value="">Selecione primeiro o período</option>'
+    : '<option value="">Selecione primeiro o município</option>';
+  selectPeriodo.disabled = true;
+  emptyState.hidden = true;
+  emptyState.dataset.competencias = '';
+  productionDashboard.hidden = true;
+  printButton.disabled = true;
+  productionIndicators.innerHTML = '';
 }
 
 function preencherPeriodos(tipo) {
+  if (!selectMunicipio.value) return;
   const opcoes = obterOpcoes(tipo);
   selectPeriodo.innerHTML = '<option value="">Selecione a referência</option>';
   opcoes.forEach((opcao) => {
@@ -395,7 +404,7 @@ function preencherPeriodos(tipo) {
   printButton.disabled = true;
 }
 
-selectMunicipio.addEventListener('change', atualizarModulos);
+selectMunicipio.addEventListener('change', atualizarMunicipioSelecionado);
 selectPeriodo.addEventListener('change', () => {
   const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
   const meses = (periodoSelecionado.dataset.meses || '').split(',').filter(Boolean);
@@ -413,22 +422,11 @@ topicButtons.forEach((button) => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
-    const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
-    const uf = municipioUf[selectMunicipio.value] || '';
-    document.querySelector('#detail-city').textContent = `${nomeMunicipio}/${uf}`;
-    document.querySelector('#detail-city').hidden = false;
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
       ? 'Produção da Atenção Primária'
       : button.dataset.topic;
-    periodTypeInputs.forEach((input) => { input.checked = false; });
-    selectPeriodo.innerHTML = '<option value="">Selecione primeiro o período</option>';
-    selectPeriodo.disabled = true;
-    emptyState.hidden = true;
-    emptyState.dataset.competencias = '';
-    productionDashboard.hidden = true;
-    printButton.disabled = true;
-    productionIndicators.innerHTML = '';
-    selector.hidden = true;
+    selectMunicipio.value = '';
+    atualizarMunicipioSelecionado();
     topics.hidden = true;
     detail.hidden = false;
     window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
@@ -454,7 +452,6 @@ window.addEventListener('beforeprint', () => {
 
 document.querySelector('#voltar').addEventListener('click', () => {
   detail.hidden = true;
-  selector.hidden = false;
   topics.hidden = false;
   topicButtons.forEach((button) => button.classList.remove('active'));
   currentTopic = '';
