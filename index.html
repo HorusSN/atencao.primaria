@@ -63,10 +63,26 @@
                 <option value="">Selecione primeiro o período</option>
               </select>
             </div>
+            <button class="print-report" id="imprimir" type="button" disabled>Imprimir</button>
             <button class="back" id="voltar">Voltar</button>
           </div>
         </div>
       </section>
+      <header class="print-report-header" aria-hidden="true">
+        <div class="print-brand">
+          <strong>HÓRUS SERVIÇOS &amp; NEGÓCIOS</strong>
+          <span>Sistema de Informações da Atenção Primária</span>
+        </div>
+        <div class="print-identification">
+          <h1>Relatório de Produção da Atenção Primária</h1>
+          <p id="print-city"></p>
+          <strong id="print-issued-at"></strong>
+        </div>
+        <div class="print-report-title">
+          <h2>Produção da Atenção Primária</h2>
+          <p id="print-period"></p>
+        </div>
+      </header>
       <div class="empty-state" hidden>Área preparada para inclusão dos indicadores.</div>
       <section class="production-dashboard" id="production-dashboard" hidden aria-label="Indicadores de produção">
         <div id="production-indicators"></div>
