@@ -243,7 +243,8 @@ select:focus {
   cursor: not-allowed;
 }
 
-.print-report-header { display: none; }
+.print-report-header,
+.print-report-footer { display: none; }
 
 .detail h2 {
   margin: 0;
@@ -611,7 +612,14 @@ select:focus {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 11mm 10mm 13mm;
+    margin: 12mm 10mm 23mm;
+
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      color: #53657C;
+      font: 8pt "Inter", Arial, sans-serif;
+      vertical-align: middle;
+    }
   }
 
   :root {
@@ -661,11 +669,11 @@ select:focus {
 
   .print-report-header {
     display: block;
-    margin: -11mm -10mm 8mm;
+    margin: 0 0 8mm;
   }
 
   .print-brand {
-    padding: 8mm 14mm 7mm;
+    padding: 8mm 8mm 7mm;
     background: #4A9BD0;
     color: #FFFFFF;
   }
@@ -722,6 +730,21 @@ select:focus {
     margin: 1.5mm 0 0;
     font-size: 11pt;
   }
+
+  .print-report-footer {
+    position: fixed;
+    right: 25mm;
+    bottom: -17mm;
+    left: 0;
+    display: block;
+    padding-top: 3mm;
+    border-top: 0.4pt solid #DFE5EA;
+    color: #53657C;
+    font-size: 7.5pt;
+    line-height: 1.45;
+  }
+
+  .print-report-footer span { display: block; }
 
   .production-dashboard,
   #production-indicators { display: block !important; }
