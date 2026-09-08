@@ -47,12 +47,12 @@ function gerarDadosDemonstrativos(indicador, meses) {
   });
 }
 
-function renderizarDetalhamentoVisitas(meses) {
+function renderizarDetalhamentoVisitas(mesesResumo, mesesGrafico = mesesResumo) {
   const numeroAcsDemonstrativo = 8;
   const diasUteisPorMes = 20;
-  const dados = meses.map((competencia, indice) => {
+  const gerarDadosVisitas = (competencias) => competencias.map((competencia) => {
     const [mes, ano] = competencia.split('/').map(Number);
-    const variacao = ((mes * 13 + ano + indice * 7) % 17) - 8;
+    const variacao = ((mes * 13 + ano) % 17) - 8;
     return {
       competencia,
       realizadas: Math.round(1050 * (1 + variacao / 100)),
@@ -60,12 +60,14 @@ function renderizarDetalhamentoVisitas(meses) {
       ausentes: Math.round(96 * (1 + variacao / 75))
     };
   });
-  const realizadas = dados.reduce((total, item) => total + item.realizadas, 0);
-  const recusadas = dados.reduce((total, item) => total + item.recusadas, 0);
-  const ausentes = dados.reduce((total, item) => total + item.ausentes, 0);
+  const dadosResumo = gerarDadosVisitas(mesesResumo);
+  const dados = gerarDadosVisitas(mesesGrafico);
+  const realizadas = dadosResumo.reduce((total, item) => total + item.realizadas, 0);
+  const recusadas = dadosResumo.reduce((total, item) => total + item.recusadas, 0);
+  const ausentes = dadosResumo.reduce((total, item) => total + item.ausentes, 0);
   const visitasTotais = realizadas + recusadas + ausentes;
-  const mediaMes = realizadas / Math.max(1, numeroAcsDemonstrativo * meses.length);
-  const mediaDia = realizadas / Math.max(1, numeroAcsDemonstrativo * meses.length * diasUteisPorMes);
+  const mediaMes = realizadas / Math.max(1, numeroAcsDemonstrativo * mesesResumo.length);
+  const mediaDia = realizadas / Math.max(1, numeroAcsDemonstrativo * mesesResumo.length * diasUteisPorMes);
   const formatarMedia = (valor) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const largura = Math.max(1100, dados.length * 110);
@@ -236,7 +238,15 @@ function renderizarProducao(meses) {
       </article>
     `;
   }).join('');
-  productionIndicators.innerHTML = quadrosPrincipais + renderizarDetalhamentoVisitas(meses);
+  let mesesGraficoVisitas = meses;
+  if (tipoPeriodo === 'mensal' && meses.length === 1) {
+    const [mesConsultado, anoConsultado] = meses[0].split('/').map(Number);
+    mesesGraficoVisitas = competenciasDisponiveis.filter((competencia) => {
+      const [mes, ano] = competencia.split('/').map(Number);
+      return ano === anoConsultado && mes <= mesConsultado;
+    });
+  }
+  productionIndicators.innerHTML = quadrosPrincipais + renderizarDetalhamentoVisitas(meses, mesesGraficoVisitas);
 }
 
 function obterOpcoes(tipo) {
@@ -310,10 +320,10 @@ topicButtons.forEach((button) => {
     currentTopic = button.dataset.topic;
     const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
     const uf = municipioUf[selectMunicipio.value] || '';
-    document.querySelector('#detail-city').textContent = currentTopic === 'Produção' ? '' : `${nomeMunicipio}/${uf}`;
-    document.querySelector('#detail-city').hidden = currentTopic === 'Produção';
+    document.querySelector('#detail-city').textContent = `${nomeMunicipio}/${uf}`;
+    document.querySelector('#detail-city').hidden = false;
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
-      ? `Produção da Atenção Primária: ${nomeMunicipio}/${uf}`
+      ? 'Produção da Atenção Primária'
       : button.dataset.topic;
     periodTypeInputs.forEach((input) => { input.checked = false; });
     selectPeriodo.innerHTML = '<option value="">Selecione primeiro o período</option>';
