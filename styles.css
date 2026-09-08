@@ -611,10 +611,22 @@ select:focus {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 37mm 10mm 22mm;
+    margin: 31mm 0 22mm;
+
+    @top-center {
+      content: "HÓRUS SERVIÇOS & NEGÓCIOS\\A Sistema de Informações da Atenção Primária";
+      width: 178mm;
+      padding: 0 16mm;
+      background: #4A9BD0;
+      color: #FFFFFF;
+      font: 700 13pt/1.65 "Inter", Arial, sans-serif;
+      text-align: left;
+      vertical-align: middle;
+      white-space: pre;
+    }
 
     @bottom-left {
-      padding-top: 3mm;
+      padding: 3mm 0 0 10mm;
       border-top: 0.4pt solid #DFE5EA;
       color: #53657C;
       font: 7.5pt/1.45 "Inter", Arial, sans-serif;
@@ -624,7 +636,7 @@ select:focus {
 
     @bottom-right {
       content: "Página " counter(page) " de " counter(pages);
-      padding-top: 3mm;
+      padding: 3mm 10mm 0 0;
       border-top: 0.4pt solid #DFE5EA;
       color: #53657C;
       font: 8pt "Inter", Arial, sans-serif;
@@ -665,7 +677,7 @@ select:focus {
   main {
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 0 10mm;
   }
 
   .detail {
@@ -684,14 +696,7 @@ select:focus {
   }
 
   .print-brand {
-    position: fixed;
-    top: -37mm;
-    right: -10mm;
-    left: -10mm;
-    height: 31mm;
-    padding: 8mm 18mm 6mm;
-    background: #4A9BD0;
-    color: #FFFFFF;
+    display: none !important;
   }
 
   .print-brand strong,
@@ -709,7 +714,7 @@ select:focus {
   }
 
   .print-identification {
-    padding: 10mm 12mm 8mm;
+    padding: 10mm 2mm 8mm;
     text-align: center;
   }
 
@@ -729,7 +734,7 @@ select:focus {
   .print-identification strong { font-size: 8.5pt; }
 
   .print-report-title {
-    margin: 0 10mm 8mm;
+    margin: 0 0 8mm;
     padding-top: 7mm;
     border-top: 0.4pt solid #A7B3BE;
     text-align: center;
