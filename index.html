@@ -34,26 +34,6 @@
       </div>
     </section>
 
-    <section class="period-filter" aria-label="Seleção do período">
-      <fieldset class="period-types">
-        <legend>Período</legend>
-        <div class="period-options">
-          <label><input type="radio" name="periodo-tipo" value="anual"><span>Anual</span></label>
-          <label><input type="radio" name="periodo-tipo" value="quadrimestral"><span>Quadrimestral</span></label>
-          <label><input type="radio" name="periodo-tipo" value="mensal"><span>Mensal</span></label>
-        </div>
-      </fieldset>
-
-      <div class="period-value">
-        <label for="periodo-valor">Referência</label>
-        <div class="select-wrap">
-          <select id="periodo-valor" disabled>
-            <option value="">Selecione primeiro o período</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
     <section class="topics" aria-label="Módulos do sistema">
       <button data-topic="Cobertura da APS" disabled>Cobertura da APS</button>
       <button data-topic="Credenciamento" disabled>Credenciamento</button>
@@ -66,7 +46,26 @@
       <button class="back" id="voltar">Voltar</button>
       <p id="detail-city"></p>
       <h2 id="detail-title"></h2>
-      <div class="empty-state">Área preparada para inclusão dos indicadores.</div>
+      <section class="period-filter" aria-label="Seleção do período">
+        <fieldset class="period-types">
+          <legend>Período</legend>
+          <div class="period-options">
+            <label><input type="radio" name="periodo-tipo" value="anual"><span>Anual</span></label>
+            <label><input type="radio" name="periodo-tipo" value="quadrimestral"><span>Quadrimestral</span></label>
+            <label><input type="radio" name="periodo-tipo" value="mensal"><span>Mensal</span></label>
+          </div>
+        </fieldset>
+
+        <div class="period-value">
+          <label for="periodo-valor">Referência</label>
+          <div class="select-wrap">
+            <select id="periodo-valor" disabled>
+              <option value="">Selecione primeiro o período</option>
+            </select>
+          </div>
+        </div>
+      </section>
+      <div class="empty-state" hidden>Área preparada para inclusão dos indicadores.</div>
     </section>
   </main>
   <script src="app.js"></script>
