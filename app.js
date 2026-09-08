@@ -1,37 +1,32 @@
 const select = document.querySelector('#municipio');
 const topicButtons = [...document.querySelectorAll('[data-topic]')];
-const hint = document.querySelector('#hint');
-const intro = document.querySelector('#inicio');
-const workspace = document.querySelector('.workspace');
+const selector = document.querySelector('.selector');
+const topics = document.querySelector('.topics');
 const detail = document.querySelector('#detalhe');
 
-function updateTopics() {
-  const selected = Boolean(select.value);
-  topicButtons.forEach((button) => { button.disabled = !selected; });
-  hint.textContent = selected
-    ? 'Agora selecione uma área de análise.'
-    : 'Selecione primeiro um município para continuar.';
-}
+select.addEventListener('change', () => {
+  topicButtons.forEach((button) => {
+    button.disabled = !select.value;
+    button.classList.remove('active');
+  });
+});
 
-select.addEventListener('change', updateTopics);
 topicButtons.forEach((button) => {
   button.addEventListener('click', () => {
-    topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     document.querySelector('#detail-city').textContent = select.options[select.selectedIndex].text;
     document.querySelector('#detail-title').textContent = button.dataset.topic;
-    intro.hidden = true;
-    workspace.hidden = true;
+    selector.hidden = true;
+    topics.hidden = true;
     detail.hidden = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
   });
 });
 
 document.querySelector('#voltar').addEventListener('click', () => {
   detail.hidden = true;
-  intro.hidden = false;
-  workspace.hidden = false;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  selector.hidden = false;
+  topics.hidden = false;
+  topicButtons.forEach((button) => button.classList.remove('active'));
+  window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
 });
-
-updateTopics();
