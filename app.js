@@ -58,9 +58,9 @@ function renderizarDetalhamentoVisitas(meses) {
   const mediaDia = realizadas / Math.max(1, numeroAcsDemonstrativo * meses.length * diasUteisPorMes);
   const formatarMedia = (valor) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  const largura = Math.max(760, dados.length * 72);
-  const altura = 255;
-  const margem = { esquerda: 42, direita: 22, topo: 38, inferior: 38 };
+  const largura = Math.max(1100, dados.length * 110);
+  const altura = 285;
+  const margem = { esquerda: 28, direita: 28, topo: 38, inferior: 58 };
   const larguraUtil = largura - margem.esquerda - margem.direita;
   const alturaUtil = altura - margem.topo - margem.inferior;
   const maiorValor = Math.max(...dados.flatMap((item) => [item.realizadas, item.recusadas, item.ausentes]), 1) * 1.16;
@@ -77,9 +77,9 @@ function renderizarDetalhamentoVisitas(meses) {
       <circle cx="${x}" cy="${pontoY(item.realizadas)}" r="4" class="acs-point acs-realizadas"><title>${item.competencia}: ${formatarNumero(item.realizadas)} realizadas</title></circle>
       <text x="${x}" y="${pontoY(item.realizadas) - 9}" class="acs-line-value acs-value-realizadas">${formatarNumero(item.realizadas)}</text>
       <circle cx="${x}" cy="${pontoY(item.recusadas)}" r="4" class="acs-point acs-recusadas"><title>${item.competencia}: ${formatarNumero(item.recusadas)} recusadas</title></circle>
-      <text x="${x}" y="${pontoY(item.recusadas) - 9}" class="acs-line-value acs-value-recusadas">${formatarNumero(item.recusadas)}</text>
+      <text x="${x}" y="${pontoY(item.recusadas) + 23}" class="acs-line-value acs-value-recusadas">${formatarNumero(item.recusadas)}</text>
       <circle cx="${x}" cy="${pontoY(item.ausentes)}" r="4" class="acs-point acs-ausentes"><title>${item.competencia}: ${formatarNumero(item.ausentes)} ausentes</title></circle>
-      <text x="${x}" y="${pontoY(item.ausentes) + 17}" class="acs-line-value acs-value-ausentes">${formatarNumero(item.ausentes)}</text>
+      <text x="${x}" y="${pontoY(item.ausentes) - 11}" class="acs-line-value acs-value-ausentes">${formatarNumero(item.ausentes)}</text>
       <text x="${x}" y="${altura - 9}" class="line-label">${item.competencia}</text>
     `;
   }).join('');
