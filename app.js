@@ -37,9 +37,90 @@ function gerarDadosDemonstrativos(indicador, meses) {
   });
 }
 
+function renderizarDetalhamentoVisitas(meses) {
+  const numeroAcsDemonstrativo = 8;
+  const diasUteisPorMes = 20;
+  const dados = meses.map((competencia, indice) => {
+    const [mes, ano] = competencia.split('/').map(Number);
+    const variacao = ((mes * 13 + ano + indice * 7) % 17) - 8;
+    return {
+      competencia,
+      realizadas: Math.round(1050 * (1 + variacao / 100)),
+      recusadas: Math.round(28 * (1 + variacao / 55)),
+      ausentes: Math.round(96 * (1 + variacao / 75))
+    };
+  });
+  const realizadas = dados.reduce((total, item) => total + item.realizadas, 0);
+  const recusadas = dados.reduce((total, item) => total + item.recusadas, 0);
+  const ausentes = dados.reduce((total, item) => total + item.ausentes, 0);
+  const visitasTotais = realizadas + recusadas + ausentes;
+  const mediaMes = realizadas / Math.max(1, numeroAcsDemonstrativo * meses.length);
+  const mediaDia = realizadas / Math.max(1, numeroAcsDemonstrativo * meses.length * diasUteisPorMes);
+  const formatarMedia = (valor) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  const largura = Math.max(760, dados.length * 72);
+  const altura = 255;
+  const margem = { esquerda: 42, direita: 22, topo: 38, inferior: 38 };
+  const larguraUtil = largura - margem.esquerda - margem.direita;
+  const alturaUtil = altura - margem.topo - margem.inferior;
+  const maiorValor = Math.max(...dados.flatMap((item) => [item.realizadas, item.recusadas, item.ausentes]), 1) * 1.16;
+  const pontoX = (indice) => margem.esquerda + (dados.length === 1 ? larguraUtil / 2 : (indice * larguraUtil) / (dados.length - 1));
+  const pontoY = (valor) => margem.topo + alturaUtil - (valor / maiorValor) * alturaUtil;
+  const pontos = (chave) => dados.map((item, indice) => `${pontoX(indice)},${pontoY(item[chave])}`).join(' ');
+  const linhasGrade = [0, 1, 2, 3].map((nivel) => {
+    const y = margem.topo + (nivel * alturaUtil) / 3;
+    return `<line x1="${margem.esquerda}" y1="${y}" x2="${largura - margem.direita}" y2="${y}" class="line-grid" />`;
+  }).join('');
+  const marcadores = dados.map((item, indice) => {
+    const x = pontoX(indice);
+    return `
+      <circle cx="${x}" cy="${pontoY(item.realizadas)}" r="4" class="acs-point acs-realizadas"><title>${item.competencia}: ${formatarNumero(item.realizadas)} realizadas</title></circle>
+      <text x="${x}" y="${pontoY(item.realizadas) - 9}" class="acs-line-value acs-value-realizadas">${formatarNumero(item.realizadas)}</text>
+      <circle cx="${x}" cy="${pontoY(item.recusadas)}" r="4" class="acs-point acs-recusadas"><title>${item.competencia}: ${formatarNumero(item.recusadas)} recusadas</title></circle>
+      <text x="${x}" y="${pontoY(item.recusadas) - 9}" class="acs-line-value acs-value-recusadas">${formatarNumero(item.recusadas)}</text>
+      <circle cx="${x}" cy="${pontoY(item.ausentes)}" r="4" class="acs-point acs-ausentes"><title>${item.competencia}: ${formatarNumero(item.ausentes)} ausentes</title></circle>
+      <text x="${x}" y="${pontoY(item.ausentes) + 17}" class="acs-line-value acs-value-ausentes">${formatarNumero(item.ausentes)}</text>
+      <text x="${x}" y="${altura - 9}" class="line-label">${item.competencia}</text>
+    `;
+  }).join('');
+
+  return `
+    <article class="acs-detail-panel">
+      <h3>Detalhamento das Visitas ACS</h3>
+      <div class="acs-summary">
+        <div class="acs-summary-card green"><span>Visitas Realizadas</span><strong>${formatarNumero(realizadas)}</strong></div>
+        <div class="acs-summary-card red"><span>Visitas Recusadas</span><strong>${formatarNumero(recusadas)}</strong></div>
+        <div class="acs-summary-card yellow"><span>Pacientes Ausentes</span><strong>${formatarNumero(ausentes)}</strong></div>
+        <div class="acs-summary-card blue"><span>Visitas Totais</span><strong>${formatarNumero(visitasTotais)}</strong></div>
+        <div class="acs-summary-card navy"><span>Média por ACS/mês</span><strong>${formatarMedia(mediaMes)}</strong></div>
+        <div class="acs-summary-card navy"><span>Média por ACS/dia</span><strong>${formatarMedia(mediaDia)}</strong></div>
+      </div>
+      <div class="acs-chart-card">
+        <div class="chart-heading">
+          <p class="chart-title">Evolução das visitas por competência</p>
+          <div class="chart-legend">
+            <span><i class="legend-realizadas"></i>Realizadas</span>
+            <span><i class="legend-recusadas"></i>Recusadas</span>
+            <span><i class="legend-ausentes"></i>Ausentes</span>
+          </div>
+        </div>
+        <div class="line-chart-wrap">
+          <svg class="line-chart acs-line-chart" viewBox="0 0 ${largura} ${altura}" role="img" aria-label="Evolução das visitas realizadas, recusadas e ausentes">
+            ${linhasGrade}
+            <polyline points="${pontos('realizadas')}" class="line-series acs-line-realizadas" />
+            <polyline points="${pontos('recusadas')}" class="line-series acs-line-recusadas" />
+            <polyline points="${pontos('ausentes')}" class="line-series acs-line-ausentes" />
+            ${marcadores}
+          </svg>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
 function renderizarProducao(meses) {
   const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
-  productionIndicators.innerHTML = indicadoresProducao.map((indicador) => {
+  const quadrosPrincipais = indicadoresProducao.map((indicador) => {
     const dados = gerarDadosDemonstrativos(indicador, meses);
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
     const totalPessoas = dados.reduce((total, item) => total + item.pessoas, 0);
@@ -122,6 +203,7 @@ function renderizarProducao(meses) {
       </article>
     `;
   }).join('');
+  productionIndicators.innerHTML = quadrosPrincipais + renderizarDetalhamentoVisitas(meses);
 }
 
 function obterOpcoes(tipo) {
