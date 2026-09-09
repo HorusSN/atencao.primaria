@@ -231,11 +231,11 @@ function renderizarProducao(meses) {
         <div class="grouped-bars">
           <div class="series-column">
             <span class="column-value">${formatarNumero(item.atendimentos)}</span>
-            <div class="column-bar attendances" style="height:${Math.max(5, (item.atendimentos / maiorValor) * 110)}px" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
+            <div class="column-bar attendances" style="height:${Math.max(5, (item.atendimentos / maiorValor) * 95)}px" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
           </div>
           <div class="series-column">
             <span class="column-value">${formatarNumero(item.pessoas)}</span>
-            <div class="column-bar people" style="height:${Math.max(5, (item.pessoas / maiorValor) * 110)}px" title="${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas"></div>
+            <div class="column-bar people" style="height:${Math.max(5, (item.pessoas / maiorValor) * 95)}px" title="${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas"></div>
           </div>
         </div>
         <span class="column-label">${item.competencia}</span>
