@@ -773,7 +773,7 @@ select:focus {
 
   .print-report-header {
     display: block;
-    margin: 0 0 8mm;
+    margin: 0 0 4mm;
   }
 
   .print-brand {
@@ -795,7 +795,7 @@ select:focus {
   }
 
   .print-identification {
-    padding: 10mm 2mm 8mm;
+    padding: 5mm 2mm 4mm;
     text-align: center;
   }
 
@@ -807,7 +807,7 @@ select:focus {
   }
 
   .print-identification p {
-    margin: 2mm 0 5mm;
+    margin: 1mm 0 2.5mm;
     color: var(--navy);
     font-size: 14pt;
   }
@@ -815,8 +815,8 @@ select:focus {
   .print-identification strong { font-size: 8.5pt; }
 
   .print-report-title {
-    margin: 0 0 8mm;
-    padding-top: 7mm;
+    margin: 0 0 4mm;
+    padding-top: 3.5mm;
     border-top: 0.4pt solid #A7B3BE;
     text-align: center;
   }
