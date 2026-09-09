@@ -581,6 +581,11 @@ function renderizarResumoAps(registros) {
   const dados = consolidarAvaliacoesAps(registros);
   const vazio = '<p class="aps-no-data">Sem dados para o município e período selecionados</p>';
   const metade = Math.ceil(dados.mapa.length / 2);
+  const percentualRegularSuficiente = percentualAps(dados.totais[0] + dados.totais[1], dados.total);
+  const leituraAlerta = percentualRegularSuficiente >= 50.1;
+  const percentualLeituraRapida = leituraAlerta ? percentualRegularSuficiente : percentualAps(dados.totais[2] + dados.totais[3], dados.total);
+  const textoLeituraRapida = leituraAlerta ? 'estão em Regular ou Suficiente.' : 'estão em Bom ou Ótimo.';
+  const classeLeituraRapida = leituraAlerta ? ' aps-quick-alert' : '';
   const linhaMapa = row => {
     const cvat = row.indicador.codigo === 'CVAT';
     const nome = cvat ? `CVAT ${row.indicador.nome.replace('Dimensão ', '')}` : `${row.indicador.codigo} ${nomesCurtosAps[row.indicador.codigo] || row.indicador.nome}`;
@@ -592,7 +597,7 @@ function renderizarResumoAps(registros) {
       ${rotulosAps.map((nome, i) => `<div class="aps-score" style="--score-color:${coresAps[i]}"><span>${nome}</span><strong>${textoPercentualAps(percentualAps(dados.totais[i], dados.total))}</strong></div>`).join('')}
     </div></section>
     ${dados.qualidade.erros.length ? '<p class="aps-no-data" role="alert">Há contagens inválidas na fonte. Os registros inválidos foram excluídos desta avaliação.</p>' : ''}
-    <section class="aps-visual-panel"><h3>Distribuição geral dos resultados</h3>${dados.total ? `<div class="aps-distribution">${roscaAps(dados)}<div class="aps-distribution-legend">${rotulosAps.map((nome, i) => `<div><i style="background:${coresAps[i]}"></i><strong>${nome}</strong><b>${formatarNumero(dados.totais[i])}</b><span>${textoPercentualAps(percentualAps(dados.totais[i], dados.total))}</span></div>`).join('')}</div><aside class="aps-quick"><h4>Leitura rápida</h4><strong>${textoPercentualAps(percentualAps(dados.totais[2] + dados.totais[3], dados.total))}</strong><p>das classificações<br>estão em Bom ou Ótimo.</p></aside></div>` : vazio}</section>
+    <section class="aps-visual-panel"><h3>Distribuição geral dos resultados</h3>${dados.total ? `<div class="aps-distribution">${roscaAps(dados)}<div class="aps-distribution-legend">${rotulosAps.map((nome, i) => `<div><i style="background:${coresAps[i]}"></i><strong>${nome}</strong><b>${formatarNumero(dados.totais[i])}</b><span>${textoPercentualAps(percentualAps(dados.totais[i], dados.total))}</span></div>`).join('')}</div><aside class="aps-quick${classeLeituraRapida}"><h4>Leitura rápida</h4><strong>${textoPercentualAps(percentualLeituraRapida)}</strong><p>das classificações<br>${textoLeituraRapida}</p></aside></div>` : vazio}</section>
     <section class="aps-visual-panel"><div class="aps-panel-heading"><h3>Desempenho por componente</h3>${legendaAps()}</div>${dados.total ? `<div class="aps-components">${dados.grupos.map(row => `<div class="aps-component-row"><strong>${escapar(equipeAps(row.equipe))} · ${escapar(row.componente)}</strong>${barraAps(row)}</div>`).join('')}</div>` : vazio}</section>
     <section class="aps-visual-panel"><div class="aps-panel-heading"><h3>Mapa de desempenho por indicador</h3>${legendaAps()}</div>${dados.total ? `<div class="aps-map"><div>${dados.mapa.slice(0, metade).map(linhaMapa).join('')}</div><div>${dados.mapa.slice(metade).map(linhaMapa).join('')}</div></div>` : vazio}</section>
   </section>`;
