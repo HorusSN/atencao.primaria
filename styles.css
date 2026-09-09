@@ -744,7 +744,6 @@ select:focus {
       width: 178mm;
       padding: 0 16mm;
       border-bottom: 6mm solid #FFFFFF;
-      box-sizing: border-box;
       background: #4A9BD0;
       color: #FFFFFF;
       font: 700 13pt/1.2 "Inter", Arial, sans-serif;
