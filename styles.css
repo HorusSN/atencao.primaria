@@ -1061,7 +1061,7 @@ select:focus {
 /* Avaliação visual: mesma base de classificações nos quatro quadros. */
 .aps-visual { background: #f3faff; padding: 22px; margin-bottom: 26px; color: #090d35; border-radius: 16px; }
 .aps-visual h3 { margin: 0 0 18px; color: var(--navy); font-size: 1.15rem; line-height: 1.25; font-weight: 800; letter-spacing: 0; }
-.aps-summary-block > h3 { font-size: 1.15rem; }
+.aps-summary-block > h3 { font-size: 1.15rem; margin-left: 20px; }
 .aps-scorecards { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
 .aps-score { --score-color: #666; background: #fff; border: 1px solid #dce4eb; border-bottom: 15px solid var(--score-color); border-radius: 18px; min-width: 0; padding: 20px 6px 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; color: var(--score-color); }
 .aps-score > span { font-size: clamp(14px,1.6vw,22px); }
@@ -1117,7 +1117,7 @@ select:focus {
 @media print {
   .aps-visual { padding: 0; margin: 0 0 6mm; background: #f3faff; border-radius: 0; }
   .aps-visual h3 { color: var(--navy); font-size: 13pt; margin-bottom: 4mm; line-height: 1.2; }
-  .aps-summary-block > h3 { font-size: 13pt; }
+  .aps-summary-block > h3 { font-size: 13pt; margin-left: 3mm; }
   .aps-scorecards { gap: 2mm; }
   .aps-score { border-radius: 3mm; border-bottom-width: 3mm; padding: 3mm 1mm 2mm; }
   .aps-score > span { font-size: 9pt; }
