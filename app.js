@@ -89,7 +89,7 @@ const indicadoresProducao = [
   }
 ];
 
-const fonteSiaps = 'Painéis CONASEMS, dados da Atenção Primária à Saúde. O total de pessoas é a soma dos quantitativos mensais, podendo incluir a mesma pessoa em meses diferentes.';
+const fonteSiaps = 'SIAPS - Ministério da Saúde';
 
 const municipioUf = {
   '311210': 'MG',
@@ -452,7 +452,7 @@ function renderizarFinanceiro() {
               </tr>`).join('')}</tbody>
             </table>
           </div>
-          <p class="indicator-note">Fonte: Painéis CONASEMS. Classificação das equipes no período selecionado.</p>
+          <p class="indicator-note">Fonte: SIAPS - Ministério da Saúde</p>
         </article>`).join('');
     productionIndicators.innerHTML = quadros || '<article class="indicator-panel"><h3>Cofinanciamento</h3><p>Não há equipes com dados para o período selecionado.</p></article>';
     productionDashboard.hidden = false;
@@ -464,7 +464,7 @@ function renderizarFinanceiro() {
     rows = dadosFonte.dados.filter(row => meses.includes(row.competencia)).map(row => [row.competencia, row.parcela, moeda(row.desconto), moeda(row.repasse), moeda(row.implantacao)]);
     headers = ['Competência CNES','Parcela','Desconto','Valor efetivo de repasse','Total da implantação'];
   }
-  productionIndicators.innerHTML = `<article class="indicator-panel"><h3>${escapar(currentTopic)}</h3><div class="source-table-wrap"><table class="source-table"><thead><tr>${headers.map(h => `<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(v => `<td>${escapar(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="indicator-note">Fonte: Painéis CONASEMS. ${currentTopic === 'Cofinanciamento' ? 'Classificação das equipes por indicador e quadrimestre. Os registros quadrimestrais não são convertidos em valores mensais.' : 'Valores apresentados por competência CNES e parcela, conforme o detalhamento da fonte.'}</p></article>`;
+  productionIndicators.innerHTML = `<article class="indicator-panel"><h3>${escapar(currentTopic)}</h3><div class="source-table-wrap"><table class="source-table"><thead><tr>${headers.map(h => `<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(v => `<td>${escapar(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="indicator-note">Fonte: SIAPS - Ministério da Saúde</p></article>`;
   productionDashboard.hidden = false;
   printButton.disabled = !rows.length;
 }
@@ -502,7 +502,7 @@ async function atualizarMunicipioSelecionado() {
     if (versao !== sequenciaConsulta) return;
     if (result.ibge !== selectMunicipio.value || result.tema !== tema) throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
     dadosFonte = result;
-    mostrarStatus(`Fonte: Painéis CONASEMS. Consulta: ${new Date(result.consultadoEm).toLocaleString('pt-BR')}. ${result.aviso || ''}`);
+    mostrarStatus(result.aviso || '');
     if (result.aviso) document.querySelector('#retry-source').hidden = false;
     if (tema === 'cobertura') { renderizarCobertura(); return; }
     const rows = tema === 'producao' ? result.dados.producao : result.dados;
