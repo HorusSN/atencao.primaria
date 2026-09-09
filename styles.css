@@ -1057,3 +1057,93 @@ select:focus {
   .acs-line-value { font-size: 12px; }
   .acs-line-chart .line-label { font-size: 11px; }
 }
+
+/* Avaliação visual: mesma base de classificações nos quatro quadros. */
+.aps-visual { background: #f3faff; padding: 22px; margin-bottom: 26px; color: #090d35; border-radius: 16px; }
+.aps-visual h3 { margin: 0 0 18px; font-size: clamp(20px, 2.2vw, 30px); line-height: 1.2; font-weight: 800; letter-spacing: -.025em; }
+.aps-summary-block > h3 { font-size: clamp(28px, 3vw, 42px); }
+.aps-scorecards { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
+.aps-score { --score-color: #666; background: #fff; border: 1px solid #dce4eb; border-bottom: 15px solid var(--score-color); border-radius: 18px; min-width: 0; padding: 20px 6px 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; color: var(--score-color); }
+.aps-score > span { font-size: clamp(14px,1.6vw,22px); }
+.aps-score > strong { font-size: clamp(25px,3.4vw,47px); line-height: 1.2; margin-top: 8px; }
+.aps-score-total > strong { font-size: clamp(36px,4.3vw,60px); margin: 0; line-height: 1; }
+.aps-score-total > span { color: #343434; margin-top: 8px; font-size: clamp(12px,1.4vw,18px); }
+.aps-visual-panel { background: #fff; border: 1px solid #c9def2; border-radius: 12px; padding: 20px; margin-top: 18px; }
+.aps-distribution { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0,1.2fr) minmax(0,1fr); gap: 22px; align-items: center; }
+.aps-donut { width: 100%; max-width: 300px; display: block; }
+.aps-donut text { font: 700 18px Arial,sans-serif; text-anchor: middle; dominant-baseline: middle; }
+.aps-distribution-legend > div { display: grid; grid-template-columns: 16px minmax(0,1fr) 28px 66px; gap: 10px; align-items: center; margin: 20px 0; font-size: 16px; }
+.aps-distribution-legend i,.aps-legend i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.aps-distribution-legend b,.aps-distribution-legend span { text-align: right; }
+.aps-distribution-legend span { color: #537eb6; font-weight: 700; }
+.aps-quick { background: #e8faf6; border-radius: 10px; padding: 20px; border-left: 1px solid #c9def2; }
+.aps-quick h4 { margin: 0 0 10px; font-size: 22px; }
+.aps-quick > strong { font-size: clamp(32px,4.2vw,56px); color: #18bfa7; line-height: 1.1; }
+.aps-quick p { color: #537eb6; line-height: 1.4; font-size: 17px; margin: 6px 0 0; }
+.aps-panel-heading { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.aps-panel-heading h3 { margin: 0; }
+.aps-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 14px; color: #537eb6; }
+.aps-legend span { display: inline-flex; gap: 6px; align-items: center; }
+.aps-components { padding: 12px 0 4px; }
+.aps-component-row { display: grid; grid-template-columns: minmax(155px,24%) minmax(0,1fr); align-items: center; gap: 16px; margin-top: 14px; }
+.aps-component-row > strong { font-size: 17px; }
+.aps-stack { display: flex; width: 100%; height: 30px; min-width: 0; }
+.aps-stack > span { display: flex; align-items: center; justify-content: center; min-width: 0; font-weight: 800; font-size: 16px; border-right: 1px solid #fff8; overflow: hidden; }
+.aps-stack > span:last-child { border-right: 0; }
+.aps-map { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+.aps-map > div + div { border-left: 1px solid #c9def2; padding-left: 20px; }
+.aps-map-row { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 10px; align-items: center; margin-top: 10px; break-inside: avoid; }
+.aps-map-label { display: grid; grid-template-columns: 49px minmax(0,1fr); gap: 6px; color: #537eb6; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; }
+.aps-map .aps-stack { height: 28px; }
+.aps-map .aps-stack span { font-size: 14px; }
+.aps-no-data { padding: 16px; color: #53657c; }
+@media screen and (max-width: 1000px) {
+  .aps-distribution { grid-template-columns: 1fr 1.3fr; }
+  .aps-quick { grid-column: 1 / -1; }
+  .aps-map { grid-template-columns: 1fr; gap: 0; }
+  .aps-map > div + div { border: 0; padding: 0; }
+}
+@media screen and (max-width: 600px) {
+  .aps-visual { padding: 12px; }
+  .aps-scorecards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .aps-score-total { grid-column: 1/-1; }
+  .aps-distribution { grid-template-columns: 1fr; }
+  .aps-donut { margin: auto; }
+  .aps-component-row { grid-template-columns: 1fr; gap: 6px; }
+  .aps-map-row { grid-template-columns: 1fr; gap: 5px; }
+}
+@media print {
+  .aps-visual { padding: 0; margin: 0 0 6mm; background: #f3faff; border-radius: 0; }
+  .aps-visual h3 { font-size: 12pt; margin-bottom: 3mm; }
+  .aps-summary-block > h3 { font-size: 20pt; }
+  .aps-scorecards { gap: 2mm; }
+  .aps-score { border-radius: 3mm; border-bottom-width: 3mm; padding: 3mm 1mm 2mm; }
+  .aps-score > span { font-size: 9pt; }
+  .aps-score > strong { font-size: 21pt; margin-top: 1mm; }
+  .aps-score-total > strong { font-size: 29pt; margin-top: 0; }
+  .aps-score-total > span { font-size: 8pt; }
+  .aps-visual-panel { padding: 3mm; margin-top: 3mm; border-radius: 2mm; break-inside: avoid-page; }
+  .aps-summary-block { break-inside: avoid-page; }
+  .aps-distribution { grid-template-columns: 45mm minmax(0,1fr) 49mm; gap: 3mm; }
+  .aps-distribution-legend > div { grid-template-columns: 3mm minmax(0,1fr) 6mm 14mm; gap: 2mm; margin: 3mm 0; font-size: 8pt; }
+  .aps-distribution-legend i,.aps-legend i { width: 3mm; height: 3mm; }
+  .aps-quick { padding: 3mm; }
+  .aps-quick h4 { font-size: 11pt; margin-bottom: 2mm; }
+  .aps-quick > strong { font-size: 26pt; }
+  .aps-quick p { font-size: 9pt; }
+  .aps-panel-heading { gap: 2mm; margin-bottom: 2mm; }
+  .aps-panel-heading h3 { margin: 0; }
+  .aps-legend { font-size: 7pt; gap: 2mm; }
+  .aps-legend span { gap: 1mm; }
+  .aps-components { padding: 0; }
+  .aps-component-row { grid-template-columns: 40mm minmax(0,1fr); gap: 3mm; margin-top: 2mm; }
+  .aps-component-row > strong { font-size: 9pt; }
+  .aps-stack { height: 5.5mm; }
+  .aps-stack > span { font-size: 9pt; }
+  .aps-map { gap: 4mm; }
+  .aps-map > div + div { padding-left: 3mm; }
+  .aps-map-row { gap: 2mm; margin-top: 2mm; }
+  .aps-map-label { grid-template-columns: 11mm minmax(0,1fr); font-size: 7pt; gap: 1mm; }
+  .aps-map .aps-stack { height: 5mm; }
+  .aps-map .aps-stack span { font-size: 8pt; }
+}
