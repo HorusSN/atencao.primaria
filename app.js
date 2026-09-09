@@ -309,12 +309,12 @@ function renderizarProducao(meses) {
         <h3>${indicador.nome}</h3>
         <div class="indicator-content">
           <div class="total-card">
-            <div class="total-metric"><span>Número de Atendimentos</span><strong>${formatarNumero(totalAtendimentos)}</strong></div>
-            <div class="total-metric"><span>Número de Pessoas Atendidas</span><strong>${formatarNumero(totalPessoas)}</strong></div>
+            <div class="total-metric"><span>Nº de Atendimentos</span><strong>${formatarNumero(totalAtendimentos)}</strong></div>
+            <div class="total-metric"><span>Nº de Pessoas Atendidas</span><strong>${formatarNumero(totalPessoas)}</strong></div>
           </div>
           <div class="chart-card">
             <div class="chart-heading">
-              <p class="chart-title">Produção realizada no período de ${periodoLabel}</p>
+              <p class="chart-title">Produção do ${periodoLabel}</p>
               <div class="chart-legend" aria-label="Legenda do gráfico">
                 <span><i class="legend-blue"></i>Atendimentos</span>
                 <span><i class="legend-green"></i>Pessoas atendidas</span>
