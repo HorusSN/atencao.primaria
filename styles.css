@@ -269,6 +269,18 @@ select:focus {
 }
 
 .print-report-header { display: none; }
+#source-status { margin: 16px 0; color: #53657C; font-size: 0.875rem; line-height: 1.5; }
+.source-table-wrap { overflow-x: auto; }
+.source-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.source-table th, .source-table td { padding: 12px; border-bottom: 1px solid #D7DEE4; text-align: left; }
+.source-table th { background: #E6EAED; }
+@media print {
+  #retry-source { display: none !important; }
+  .source-table-wrap { overflow: visible; }
+  .source-table { font-size: 7pt; table-layout: fixed; overflow-wrap: anywhere; }
+  .source-table th, .source-table td { padding: 2mm; }
+  .source-table tr { break-inside: avoid; }
+}
 
 .coverage-mode .filter-layout { grid-template-columns: minmax(230px, 340px) auto; justify-content: start; }
 .coverage-mode .period-filter { display: block; }
@@ -936,7 +948,7 @@ select:focus {
     padding: 4mm 1mm 0;
   }
 
-  .column-bar { max-height: 24mm !important; }
+  .column-bar { --column-max-height: 24mm; max-height: 24mm !important; }
 
   .month-group { min-width: 0; }
   .column-value { font-size: 6.5pt; }
