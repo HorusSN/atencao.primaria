@@ -340,7 +340,7 @@ select:focus {
 
 .total-metric span {
   color: #687585;
-  font-size: 0.78rem;
+  font-size: 0.53rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -372,7 +372,7 @@ select:focus {
 .chart-title {
   margin: 0;
   color: #687585;
-  font-size: 0.78rem;
+  font-size: 0.53rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -901,12 +901,12 @@ select:focus {
   .total-metric { padding: 5mm; }
   .total-metric:first-child { border-left: 1.5mm solid var(--blue) !important; }
   .total-metric:last-child { border-left: 1.5mm solid var(--green) !important; }
-  .total-metric span { font-size: 7.2pt; }
+  .total-metric span { font-size: 5pt; }
   .total-metric strong { font-size: 20pt; }
 
   .chart-card { padding: 4mm 4mm 3mm; overflow: hidden; }
   .chart-heading { gap: 3mm; margin-bottom: 3mm; }
-  .chart-title { font-size: 7.2pt; }
+  .chart-title { font-size: 5pt; }
   .chart-legend { gap: 3mm; font-size: 7pt; }
 
   .column-chart {
