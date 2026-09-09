@@ -91,6 +91,79 @@ const indicadoresProducao = [
 
 const fonteSiaps = 'SIAPS - Ministério da Saúde';
 
+const catalogoIndicadoresCofinanciamento = {
+  eSF: [
+    ['C1', 'Mais acesso à APS', ['mais acesso']],
+    ['C2', 'Cuidado no desenvolvimento infantil', ['desenvolvimento infantil']],
+    ['C3', 'Cuidado na gestação e puerpério', ['gestante', 'gestacao', 'puerpera', 'puerperio']],
+    ['C4', 'Cuidado da pessoa com diabetes', ['diabetes']],
+    ['C5', 'Cuidado da pessoa com hipertensão', ['hipertensao']],
+    ['C6', 'Cuidado da pessoa idosa', ['pessoa idosa']],
+    ['C7', 'Cuidado da mulher na prevenção do câncer', ['saude da mulher', 'prevencao do cancer']]
+  ],
+  eAP: [
+    ['C1', 'Mais acesso à APS', ['mais acesso']],
+    ['C2', 'Cuidado no desenvolvimento infantil', ['desenvolvimento infantil']],
+    ['C3', 'Cuidado na gestação e puerpério', ['gestante', 'gestacao', 'puerpera', 'puerperio']],
+    ['C4', 'Cuidado da pessoa com diabetes', ['diabetes']],
+    ['C5', 'Cuidado da pessoa com hipertensão', ['hipertensao']],
+    ['C6', 'Cuidado da pessoa idosa', ['pessoa idosa']],
+    ['C7', 'Cuidado da mulher na prevenção do câncer', ['saude da mulher', 'prevencao do cancer']]
+  ],
+  eSB: [
+    ['B1', 'Primeira consulta programada', ['1a consulta', 'primeira consulta']],
+    ['B2', 'Tratamento concluído', ['tratamento odontologico concluido', 'tratamento concluido']],
+    ['B3', 'Taxa de exodontia', ['exodontia']],
+    ['B4', 'Escovação supervisionada em faixa etária escolar, de 6 a 12 anos', ['escovacao supervisionada']],
+    ['B5', 'Procedimentos odontológicos preventivos', ['procedimentos odontologicos preventivos']],
+    ['B6', 'Tratamento restaurador atraumático', ['tratamento restaurador atraumatico']]
+  ],
+  eMulti: [
+    ['M1', 'Média de atendimentos por pessoa pela eMulti na APS', ['media de atendimentos']],
+    ['M2', 'Ações interprofissionais realizadas pela eMulti na APS', ['acoes interprofissionais']]
+  ],
+  eAPP: [
+    ['P1', 'Mais acesso à Atenção Primária Prisional', ['mais acesso']],
+    ['P2', 'Cuidado na gestação', ['gestacao']],
+    ['P3', 'Cuidado da pessoa com diabetes e/ou hipertensão', ['diabetes', 'hipertensao']],
+    ['P4', 'Rastreio de infecções sexualmente transmissíveis', ['infeccoes sexualmente transmissiveis']],
+    ['P5', 'Cuidado da pessoa com tuberculose', ['tuberculose']],
+    ['P6', 'Cuidado da mulher na prevenção do câncer', ['saude da mulher', 'prevencao do cancer']]
+  ],
+  eCR: [
+    ['CR1', 'Mais acesso à eCR', ['mais acesso']],
+    ['CR2', 'Cuidado na gestação', ['gestacao']],
+    ['CR3', 'Rastreio de infecções sexualmente transmissíveis', ['infeccoes sexualmente transmissiveis']],
+    ['CR4', 'Cuidado da pessoa com tuberculose', ['tuberculose']]
+  ],
+  eSFR: [
+    ['R1', 'Mais acesso à equipe de Saúde da Família Ribeirinha', ['mais acesso']],
+    ['R2', 'Cuidado no desenvolvimento infantil pela eSFR', ['desenvolvimento infantil']],
+    ['R3', 'Cuidado na gestação e puerpério realizados pela eSFR', ['gestacao', 'gestante', 'puerperio']],
+    ['R4', 'Cuidado da pessoa com diabetes realizado pela eSFR', ['diabetes']],
+    ['R5', 'Cuidado da pessoa com hipertensão pela eSFR', ['hipertensao']],
+    ['R6', 'Cuidado da mulher na prevenção do câncer pela eSFR', ['saude da mulher', 'prevencao do cancer']]
+  ]
+};
+
+const normalizarIndicador = texto => String(texto || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/ª/g, 'a')
+  .toLowerCase();
+
+function identificarIndicadorCofinanciamento(row) {
+  const texto = normalizarIndicador(row.indicador);
+  if (normalizarIndicador(row.componente) === 'cvat') {
+    const dimensao = texto.includes('cadastro') ? 'Cadastro' : texto.includes('acompanhamento') ? 'Acompanhamento' : row.indicador;
+    return { codigo: 'CVAT', nome: `Dimensão ${dimensao}`, ordem: texto.includes('cadastro') ? 1 : texto.includes('acompanhamento') ? 2 : 99 };
+  }
+  const item = (catalogoIndicadoresCofinanciamento[row.equipe] || []).find(([, , termos]) => termos.some(termo => texto.includes(termo)));
+  if (!item) return { codigo: '', nome: row.indicador, ordem: 999 };
+  const [codigo, nome] = item;
+  return { codigo, nome, ordem: Number(codigo.match(/\d+/)?.[0] || 999) };
+}
+
 const municipioUf = {
   '311210': 'MG',
   '312370': 'MG',
@@ -430,9 +503,12 @@ function renderizarFinanceiro() {
     });
     const nomeEquipe = equipe => ({ eMulti: 'e-Multi', eSF: 'eSF', eSB: 'eSB', eAP: 'eAP' })[equipe] || equipe;
     const resultado = valor => valor == null || valor === 0 ? '-' : formatarNumero(valor);
+    const ordemGrupo = grupo => normalizarIndicador(grupo.componente) === 'cvat' ? 0 : grupo.equipe === 'eMulti' ? 1 : 2;
     const quadros = [...grupos.values()]
-      .sort((a, b) => nomeEquipe(a.equipe).localeCompare(nomeEquipe(b.equipe), 'pt-BR') || a.componente.localeCompare(b.componente, 'pt-BR'))
-      .map(grupo => `
+      .sort((a, b) => ordemGrupo(a) - ordemGrupo(b) || nomeEquipe(a.equipe).localeCompare(nomeEquipe(b.equipe), 'pt-BR') || a.componente.localeCompare(b.componente, 'pt-BR'))
+      .map(grupo => {
+        grupo.registros.sort((a, b) => a.quadrimestre.localeCompare(b.quadrimestre) || identificarIndicadorCofinanciamento(a).ordem - identificarIndicadorCofinanciamento(b).ordem);
+        return `
         <article class="indicator-panel cofinance-panel">
           <h3>${escapar(nomeEquipe(grupo.equipe))} - Componente ${escapar(grupo.componente)}</h3>
           <div class="source-table-wrap">
@@ -440,20 +516,24 @@ function renderizarFinanceiro() {
               <thead><tr>
                 <th scope="col">Período</th>
                 <th scope="col">Indicador</th>
-                <th scope="col" class="result-column">Regular</th>
-                <th scope="col" class="result-column">Suficiente</th>
-                <th scope="col" class="result-column">Bom</th>
-                <th scope="col" class="result-column">Ótimo</th>
+                <th scope="col" class="result-column result-regular">Regular</th>
+                <th scope="col" class="result-column result-suficiente">Suficiente</th>
+                <th scope="col" class="result-column result-bom">Bom</th>
+                <th scope="col" class="result-column result-otimo">Ótimo</th>
               </tr></thead>
-              <tbody>${grupo.registros.map(row => `<tr>
-                <td>${escapar(row.quadrimestre.replace(/(\d{4})Q([1-3])/, '$2º Quadrimestre/$1'))}</td>
-                <td>${escapar(row.indicador)}</td>
-                ${['regular','suficiente','bom','otimo'].map(chave => `<td class="result-column">${resultado(row[chave])}</td>`).join('')}
-              </tr>`).join('')}</tbody>
+              <tbody>${grupo.registros.map(row => {
+                const indicador = identificarIndicadorCofinanciamento(row);
+                return `<tr>
+                  <td>${escapar(row.quadrimestre.replace(/(\d{4})Q([1-3])/, '$2º Quadrimestre/$1'))}</td>
+                  <td><strong class="indicator-code">${escapar(indicador.codigo)}</strong>${indicador.codigo ? ' ' : ''}${escapar(indicador.nome)}</td>
+                  ${['regular','suficiente','bom','otimo'].map(chave => `<td class="result-column result-${chave}${row[chave] == null || row[chave] === 0 ? ' result-empty' : ''}">${resultado(row[chave])}</td>`).join('')}
+                </tr>`;
+              }).join('')}</tbody>
             </table>
           </div>
           <p class="indicator-note">Fonte: SIAPS - Ministério da Saúde</p>
-        </article>`).join('');
+        </article>`;
+      }).join('');
     productionIndicators.innerHTML = quadros || '<article class="indicator-panel"><h3>Cofinanciamento</h3><p>Não há equipes com dados para o período selecionado.</p></article>';
     productionDashboard.hidden = false;
     printButton.disabled = registros.length === 0;
