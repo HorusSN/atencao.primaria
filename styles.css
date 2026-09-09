@@ -896,8 +896,8 @@ select:focus {
     width: 100% !important;
     max-width: none !important;
     min-width: 0 !important;
-    break-inside: avoid-page;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
     margin: 0 0 6mm;
     padding: 5mm;
     border: 0.6pt solid #D7DEE4;
@@ -912,6 +912,35 @@ select:focus {
     color: var(--navy);
     font-size: 13pt;
     text-transform: none;
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  .indicator-content,
+  .total-card,
+  .chart-card,
+  .coverage-grid,
+  .acs-summary,
+  .acs-chart-card,
+  .indicator-note {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .cofinance-panel,
+  .cofinance-panel .source-table-wrap,
+  .cofinance-panel .cofinance-table {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .cofinance-table thead {
+    display: table-header-group;
+  }
+
+  .cofinance-table tbody tr {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
   }
 
   .indicator-content {
