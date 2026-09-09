@@ -419,9 +419,45 @@ function renderizarFinanceiro() {
   let headers;
   if (currentTopic === 'Cofinanciamento') {
     const [q, ano] = ref.split('-');
-    rows = dadosFonte.dados.filter(row => tipo === 'anual' ? row.quadrimestre.startsWith(ref) : row.quadrimestre === `${ano}Q${q}`)
-      .map(row => [row.quadrimestre.replace(/(\d{4})Q([1-3])/, '$2º Quadrimestre/$1'), row.equipe, row.componente, row.indicador, ...['regular','suficiente','bom','otimo'].map(k => formatarNumero(row[k]))]);
-    headers = ['Quadrimestre','Equipe','Componente','Indicador','Regular','Suficiente','Bom','Ótimo'];
+    const registros = dadosFonte.dados
+      .filter(row => tipo === 'anual' ? row.quadrimestre.startsWith(ref) : row.quadrimestre === `${ano}Q${q}`)
+      .sort((a, b) => a.quadrimestre.localeCompare(b.quadrimestre) || a.indicador.localeCompare(b.indicador, 'pt-BR'));
+    const grupos = new Map();
+    registros.forEach(row => {
+      const chave = `${row.equipe}\u0000${row.componente}`;
+      if (!grupos.has(chave)) grupos.set(chave, { equipe: row.equipe, componente: row.componente, registros: [] });
+      grupos.get(chave).registros.push(row);
+    });
+    const nomeEquipe = equipe => ({ eMulti: 'e-Multi', eSF: 'eSF', eSB: 'eSB', eAP: 'eAP' })[equipe] || equipe;
+    const resultado = valor => valor == null || valor === 0 ? '-' : formatarNumero(valor);
+    const quadros = [...grupos.values()]
+      .sort((a, b) => nomeEquipe(a.equipe).localeCompare(nomeEquipe(b.equipe), 'pt-BR') || a.componente.localeCompare(b.componente, 'pt-BR'))
+      .map(grupo => `
+        <article class="indicator-panel cofinance-panel">
+          <h3>${escapar(nomeEquipe(grupo.equipe))} - Componente ${escapar(grupo.componente)}</h3>
+          <div class="source-table-wrap">
+            <table class="source-table cofinance-table">
+              <thead><tr>
+                <th scope="col">Período</th>
+                <th scope="col">Indicador</th>
+                <th scope="col" class="result-column">Regular</th>
+                <th scope="col" class="result-column">Suficiente</th>
+                <th scope="col" class="result-column">Bom</th>
+                <th scope="col" class="result-column">Ótimo</th>
+              </tr></thead>
+              <tbody>${grupo.registros.map(row => `<tr>
+                <td>${escapar(row.quadrimestre.replace(/(\d{4})Q([1-3])/, '$2º Quadrimestre/$1'))}</td>
+                <td>${escapar(row.indicador)}</td>
+                ${['regular','suficiente','bom','otimo'].map(chave => `<td class="result-column">${resultado(row[chave])}</td>`).join('')}
+              </tr>`).join('')}</tbody>
+            </table>
+          </div>
+          <p class="indicator-note">Fonte: Painéis CONASEMS. Classificação das equipes no período selecionado.</p>
+        </article>`).join('');
+    productionIndicators.innerHTML = quadros || '<article class="indicator-panel"><h3>Cofinanciamento</h3><p>Não há equipes com dados para o período selecionado.</p></article>';
+    productionDashboard.hidden = false;
+    printButton.disabled = registros.length === 0;
+    return;
   } else {
     const meses = selectPeriodo.options[selectPeriodo.selectedIndex].dataset.meses.split(',');
     const moeda = valor => valor == null ? 'Não disponível' : valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
