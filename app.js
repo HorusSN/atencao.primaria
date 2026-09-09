@@ -485,6 +485,119 @@ function mostrarStatus(texto) {
   status.hidden = !texto;
 }
 
+const faixasAps = ['regular', 'suficiente', 'bom', 'otimo'];
+const rotulosAps = ['Regular', 'Suficiente', 'Bom', 'Ótimo'];
+const coresAps = ['#FF5C00', '#FFB800', '#18BFA7', '#1648E8'];
+const percentualAps = (n, total) => total ? 100 * n / total : 0;
+const textoPercentualAps = n => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+const equipeAps = nome => nome === 'eMulti' ? 'e-Multi' : nome;
+
+function consolidarAvaliacoesAps(registros) {
+  const qualidade = { avisos: [], erros: [] };
+  const consolidados = new Map();
+  registros.forEach((row, ordemOriginal) => {
+    const indicador = identificarIndicadorCofinanciamento(row);
+    // CVAT possui duas dimensões distintas, embora ambas usem a sigla CVAT.
+    const codigo = indicador.codigo === 'CVAT' ? `CVAT:${indicador.nome}` : indicador.codigo || row.indicador;
+    const chave = JSON.stringify([row.equipe, row.componente, codigo]);
+    const valores = faixasAps.map(f => {
+      const v = row[f];
+      if (v == null || v === '') return 0;
+      if (!['string', 'number'].includes(typeof v)) return NaN;
+      return Number(v);
+    });
+    if (valores.some(v => !Number.isSafeInteger(v) || v < 0)) {
+      qualidade.erros.push(`Contagem inválida: ${row.equipe}, ${row.indicador}.`);
+      return;
+    }
+    if (!consolidados.has(chave)) consolidados.set(chave, {
+      equipe: row.equipe, componente: row.componente, codigo, indicador,
+      ordemOriginal, valores: [0, 0, 0, 0]
+    });
+    const destino = consolidados.get(chave);
+    valores.forEach((v, i) => destino.valores[i] += v);
+  });
+  const linhas = [...consolidados.values()].filter(row => {
+    row.total = row.valores.reduce((s, n) => s + n, 0);
+    if (!row.total) qualidade.avisos.push(`Sem classificações: ${row.equipe}, ${row.indicador.nome}.`);
+    return row.total > 0;
+  });
+  const totais = [0, 0, 0, 0];
+  const componentes = new Map();
+  const indicadores = new Map();
+  linhas.forEach(row => {
+    row.valores.forEach((v, i) => totais[i] += v);
+    for (const [mapa, chave] of [[componentes, JSON.stringify([row.equipe, row.componente])], [indicadores, JSON.stringify([row.equipe, row.codigo])]]) {
+      if (!mapa.has(chave)) mapa.set(chave, { ...row, valores: [0, 0, 0, 0] });
+      row.valores.forEach((v, i) => mapa.get(chave).valores[i] += v);
+    }
+  });
+  const finalizar = row => {
+    row.total = row.valores.reduce((s, n) => s + n, 0);
+    row.percentuais = row.valores.map(v => percentualAps(v, row.total));
+    const ultimo = row.valores.findLastIndex(v => v > 0);
+    let acumulado = 0;
+    row.exibidos = row.valores.map((v, i) => {
+      const pct = !v ? 0 : i === ultimo ? 100 - acumulado : Math.floor(row.percentuais[i]);
+      acumulado += pct;
+      return pct;
+    });
+    return row;
+  };
+  const ordem = row => normalizarIndicador(row.componente) === 'cvat' ? 0 : row.equipe === 'eMulti' ? 1 : 2;
+  const grupos = [...componentes.values()].map(finalizar).sort((a, b) => ordem(a) - ordem(b) || equipeAps(a.equipe).localeCompare(equipeAps(b.equipe), 'pt-BR') || a.ordemOriginal - b.ordemOriginal);
+  const mapa = [...indicadores.values()].map(finalizar).sort((a, b) => b.percentuais[3] - a.percentuais[3] || b.percentuais[2] - a.percentuais[2] || b.percentuais[1] - a.percentuais[1] || b.percentuais[0] - a.percentuais[0] || a.ordemOriginal - b.ordemOriginal);
+  return { totais, total: totais.reduce((s, n) => s + n, 0), grupos, mapa, qualidade };
+}
+
+function legendaAps() {
+  return `<div class="aps-legend">${rotulosAps.map((nome, i) => `<span><i style="background:${coresAps[i]}"></i>${nome}</span>`).join('')}</div>`;
+}
+
+function barraAps(row, mapa = false) {
+  const descricao = row.valores.map((v, i) => `${rotulosAps[i]}: ${v} (${textoPercentualAps(row.percentuais[i])})`).join('; ');
+  return `<div class="aps-stack" role="img" aria-label="${escapar(descricao)}">${row.valores.map((v, i) => v ? `<span style="width:${row.percentuais[i]}%;background:${coresAps[i]};color:${i === 1 ? '#151515' : '#fff'}" title="${rotulosAps[i]}: ${v} (${textoPercentualAps(row.percentuais[i])})">${row.percentuais[i] >= (mapa ? 12 : 6) ? (mapa ? row.exibidos[i] + '%' : formatarNumero(v)) : ''}</span>` : '').join('')}</div>`;
+}
+
+function roscaAps(dados) {
+  let acumulado = 0;
+  const segmentos = dados.totais.map((n, i) => {
+    if (!n) return '';
+    const pct = percentualAps(n, dados.total);
+    const meio = (acumulado + pct / 2) / 100 * Math.PI * 2 - Math.PI / 2;
+    const inicio = acumulado;
+    acumulado += pct;
+    return `<circle cx="150" cy="150" r="104" pathLength="100" fill="none" stroke="${coresAps[i]}" stroke-width="70" stroke-dasharray="${pct} ${100 - pct}" stroke-dashoffset="${-inicio}" transform="rotate(-90 150 150)"><title>${rotulosAps[i]}: ${n}, ${textoPercentualAps(pct)}</title></circle>${pct >= 7 ? `<text x="${150 + 104 * Math.cos(meio)}" y="${150 + 104 * Math.sin(meio)}" fill="${i === 1 ? '#151515' : 'white'}">${textoPercentualAps(pct)}</text>` : ''}`;
+  }).join('');
+  return `<svg class="aps-donut" viewBox="0 0 300 300" role="img" aria-label="Distribuição geral dos resultados">${segmentos}</svg>`;
+}
+
+const nomesCurtosAps = {
+  C1: 'Mais acesso à APS', C2: 'Desenv. infantil', C3: 'Gestação e puerpério', C4: 'Diabetes', C5: 'Hipertensão', C6: 'Pessoa idosa', C7: 'Câncer da mulher',
+  B1: 'Primeira consulta', B2: 'Tratamento concluído', B3: 'Exodontia', B4: 'Escovação', B5: 'Proc. preventivos', B6: 'Trat. restaurador',
+  M1: 'Atendimentos', M2: 'Ações interprofissionais'
+};
+function renderizarResumoAps(registros) {
+  const dados = consolidarAvaliacoesAps(registros);
+  const vazio = '<p class="aps-no-data">Sem dados para o município e período selecionados</p>';
+  const metade = Math.ceil(dados.mapa.length / 2);
+  const linhaMapa = row => {
+    const cvat = row.indicador.codigo === 'CVAT';
+    const nome = cvat ? `CVAT ${row.indicador.nome.replace('Dimensão ', '')}` : `${row.indicador.codigo} ${nomesCurtosAps[row.indicador.codigo] || row.indicador.nome}`;
+    return `<div class="aps-map-row"><div class="aps-map-label" title="${escapar(row.indicador.nome)}"><strong>${escapar(cvat ? 'CVAT' : equipeAps(row.equipe))}</strong><span>${escapar(nome)}</span></div>${barraAps(row, true)}</div>`;
+  };
+  return `<section class="aps-visual" aria-label="Avaliação dos indicadores de Cofinanciamento">
+    <section class="aps-summary-block"><h3>Resumo da avaliação</h3><div class="aps-scorecards">
+      <div class="aps-score aps-score-total"><strong>${formatarNumero(dados.total)}</strong><span>Nº de Classificações</span></div>
+      ${rotulosAps.map((nome, i) => `<div class="aps-score" style="--score-color:${coresAps[i]}"><span>${nome}</span><strong>${textoPercentualAps(percentualAps(dados.totais[i], dados.total))}</strong></div>`).join('')}
+    </div></section>
+    ${dados.qualidade.erros.length ? '<p class="aps-no-data" role="alert">Há contagens inválidas na fonte. Os registros inválidos foram excluídos desta avaliação.</p>' : ''}
+    <section class="aps-visual-panel"><h3>Distribuição geral dos resultados</h3>${dados.total ? `<div class="aps-distribution">${roscaAps(dados)}<div class="aps-distribution-legend">${rotulosAps.map((nome, i) => `<div><i style="background:${coresAps[i]}"></i><strong>${nome}</strong><b>${formatarNumero(dados.totais[i])}</b><span>${textoPercentualAps(percentualAps(dados.totais[i], dados.total))}</span></div>`).join('')}</div><aside class="aps-quick"><h4>Leitura rápida</h4><strong>${textoPercentualAps(percentualAps(dados.totais[2] + dados.totais[3], dados.total))}</strong><p>das classificações<br>estão em Bom ou Ótimo.</p></aside></div>` : vazio}</section>
+    <section class="aps-visual-panel"><div class="aps-panel-heading"><h3>Desempenho por componente</h3>${legendaAps()}</div>${dados.total ? `<div class="aps-components">${dados.grupos.map(row => `<div class="aps-component-row"><strong>${escapar(equipeAps(row.equipe))} · ${escapar(row.componente)}</strong>${barraAps(row)}</div>`).join('')}</div>` : vazio}</section>
+    <section class="aps-visual-panel"><div class="aps-panel-heading"><h3>Mapa de desempenho por indicador</h3>${legendaAps()}</div>${dados.total ? `<div class="aps-map"><div>${dados.mapa.slice(0, metade).map(linhaMapa).join('')}</div><div>${dados.mapa.slice(metade).map(linhaMapa).join('')}</div></div>` : vazio}</section>
+  </section>`;
+}
+
 function renderizarFinanceiro() {
   const tipo = document.querySelector('input[name="periodo-tipo"]:checked').value;
   const ref = selectPeriodo.value;
@@ -492,6 +605,7 @@ function renderizarFinanceiro() {
   let headers;
   if (currentTopic === 'Cofinanciamento') {
     const [q, ano] = ref.split('-');
+    const registrosOriginais = dadosFonte.dados.filter(row => tipo === 'anual' ? row.quadrimestre.startsWith(ref) : row.quadrimestre === `${ano}Q${q}`);
     const registros = dadosFonte.dados
       .filter(row => tipo === 'anual' ? row.quadrimestre.startsWith(ref) : row.quadrimestre === `${ano}Q${q}`)
       .sort((a, b) => a.quadrimestre.localeCompare(b.quadrimestre) || a.indicador.localeCompare(b.indicador, 'pt-BR'));
@@ -534,7 +648,7 @@ function renderizarFinanceiro() {
           <p class="indicator-note">Fonte: SIAPS - Ministério da Saúde</p>
         </article>`;
       }).join('');
-    productionIndicators.innerHTML = quadros || '<article class="indicator-panel"><h3>Cofinanciamento</h3><p>Não há equipes com dados para o período selecionado.</p></article>';
+    productionIndicators.innerHTML = renderizarResumoAps(registrosOriginais) + (quadros || '<article class="indicator-panel"><h3>Cofinanciamento</h3><p>Não há equipes com dados para o período selecionado.</p></article>');
     productionDashboard.hidden = false;
     printButton.disabled = registros.length === 0;
     return;
