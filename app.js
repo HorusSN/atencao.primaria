@@ -11,28 +11,29 @@ const productionIndicators = document.querySelector('#production-indicators');
 const printButton = document.querySelector('#imprimir');
 let currentTopic = '';
 
-// Somente registros verificados da fonte de cobertura devem ser incluídos aqui.
-// Formato: { municipio, competencia: 'YYYY-MM', aps, bucal, acs }.
-const registrosCobertura = [];
+let dadosFonte = null;
+let consultaEmCurso = null;
+let sequenciaConsulta = 0;
+let competenciasDisponiveis = [];
+const escapar = (valor) => String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ordenarCompetencias = (meses) => [...new Set(meses)].sort((a, b) => (a.slice(3) + a.slice(0, 2)).localeCompare(b.slice(3) + b.slice(0, 2)));
 let coberturaAtual = null;
 
 function obterCoberturaMaisRecente(municipio) {
-  return registrosCobertura
-    .filter((item) => item.municipio === municipio && /^\d{4}-(0[1-9]|1[0-2])$/.test(item.competencia))
-    .sort((a, b) => b.competencia.localeCompare(a.competencia))[0] || null;
+  return dadosFonte?.ibge === municipio && dadosFonte.tema === 'cobertura' ? dadosFonte.dados : null;
 }
 
 function referenciaCobertura() {
   if (!coberturaAtual) return 'Competência indisponível: aguardando dados de cobertura';
-  const [ano, mes] = coberturaAtual.competencia.split('-');
-  return `Competência mais recente disponível: ${mes}/${ano}`;
+  const refs = [...new Set(coberturaAtual.map(row => row.referencia).filter(Boolean))];
+  return refs.length ? `Referência CONASEMS: ${refs.join(' • ')}` : 'Competência não informada pela fonte';
 }
 
 function renderizarCobertura() {
   coberturaAtual = obterCoberturaMaisRecente(selectMunicipio.value);
   const indicadores = [
     { chave: 'aps', titulo: 'Cobertura Potencial da APS', classe: 'blue' },
-    { chave: 'bucal', titulo: 'Cobertura de Saúde Bucal', classe: 'green' },
+    { chave: 'sb', titulo: 'Cobertura de Saúde Bucal', classe: 'green' },
     { chave: 'acs', titulo: 'Cobertura de ACS', classe: 'amber' }
   ];
   productionIndicators.innerHTML = `
@@ -41,61 +42,54 @@ function renderizarCobertura() {
       <p class="coverage-reference">${referenciaCobertura()}</p>
       <div class="coverage-grid">
         ${indicadores.map(({ chave, titulo, classe }) => {
-          const valor = coberturaAtual?.[chave];
+          const registro = coberturaAtual?.find(row => row.chave === chave);
+          const valor = registro?.valor;
           const disponivel = typeof valor === 'number' && Number.isFinite(valor) && valor >= 0;
           return `<section class="coverage-card ${classe}">
             <h4>${titulo}</h4>
-            <strong>${disponivel ? valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : 'Não disponível'}</strong>
-            <p>${disponivel ? 'Percentual de cobertura do município' : 'Aguardando dados oficiais do município'}</p>
+            <strong>${disponivel ? escapar(registro.exibicao || valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%') : 'Não disponível'}</strong>
+            ${disponivel && valor > 100 ? `<p>*Potencial calculado: ${valor.toLocaleString('pt-BR')}%. Exibição limitada a 100% pelo CONASEMS.</p>` : ''}
+            <p>${disponivel ? 'Referência: ' + escapar(registro.referencia) : 'Dado não disponibilizado pelo CONASEMS'}</p>
+            ${registro?.potencial != null ? `<p>Potencial de cobertura: ${formatarNumero(registro.potencial)} pessoas</p>` : ''}
+            ${registro?.equipes ? `<p>${Object.entries(registro.equipes).map(([k,v]) => `${escapar(({qtdEsf:'eSF',qtdEap20h:'eAP 20h',qtdEap30h:'eAP 30h',qtdEcr:'eCR',qtdEapp:'eAPP',qtdEsfr:'eSFR',qtEsb20h:'eSB 20h',qtEsb30h:'eSB 30h',qtEsb40h:'eSB 40h',qtAcsCobertura:'ACS'})[k])}: ${formatarNumero(v)}`).join(' · ')}</p>` : ''}
           </section>`;
         }).join('')}
       </div>
       <p class="indicator-note"><strong>Cobertura Potencial da Atenção Primária à Saúde (APS):</strong> Refere-se à proporção da população potencialmente coberta pelas Equipes de Saúde da Família e/ou Equipes de Atenção Primária credenciadas no município. Esse indicador estima a capacidade instalada para ofertar ações de atenção primária, considerando o número de equipes ativas e sua população adscrita teórica.</p>
     </article>`;
   productionDashboard.hidden = false;
-  printButton.disabled = false;
+  printButton.disabled = !coberturaAtual?.some(row => row.valor != null);
 }
-
-const competenciasDisponiveis = [
-  ...Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2024`),
-  ...Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2025`),
-  ...Array.from({ length: 8 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2026`)
-];
 
 const indicadoresProducao = [
   {
     nome: 'Consultas Médicas',
-    baseAtendimentos: 428,
-    basePessoas: 351,
+    tipo: 'Medico',
     descricao: 'Apresenta o somatório de todas as consultas médicas realizadas na Atenção Primária à Saúde (APS)'
   },
   {
     nome: 'Consultas de Enfermagem',
-    baseAtendimentos: 512,
-    basePessoas: 406,
+    tipo: 'Enfermeiro',
     descricao: 'Apresenta o somatório de todas as consultas de enfermagem realizadas na Atenção Primária à Saúde (APS)'
   },
   {
     nome: 'Atendimentos Odontológicos',
-    baseAtendimentos: 236,
-    basePessoas: 198,
+    tipo: 'Odontologico',
     descricao: 'Apresenta o somatório de todas as consultas odontológicas realizadas na Atenção Primária à Saúde (APS)'
   },
   {
     nome: 'Procedimentos',
-    baseAtendimentos: 684,
-    basePessoas: 472,
+    tipo: 'Procedimento',
     descricao: 'Apresenta a produção consolidada de procedimentos realizados na Atenção Primária à Saúde (APS)'
   },
   {
     nome: 'Visita Domiciliar (ACS)',
-    baseAtendimentos: 1248,
-    basePessoas: 903,
+    tipo: 'Domiciliar',
     descricao: 'Apresenta as visitas domiciliares de acompanhamento geral realizadas por Agentes Comunitários de Saúde (ACS)'
   }
 ];
 
-const fonteSiaps = 'Sistema de Informação da Atenção Primária em Saúde (SIAPS), e-Gestor AB, Secretaria de Atenção Primária à Saúde (SAPS), Ministério da Saúde (MS).';
+const fonteSiaps = 'Painéis CONASEMS, dados da Atenção Primária à Saúde. O total de pessoas é a soma dos quantitativos mensais, podendo incluir a mesma pessoa em meses diferentes.';
 
 const municipioUf = {
   '311210': 'MG',
@@ -107,7 +101,7 @@ const municipioUf = {
   '316294': 'MG'
 };
 
-const formatarNumero = (valor) => new Intl.NumberFormat('pt-BR').format(valor);
+const formatarNumero = (valor) => valor == null || !Number.isFinite(valor) ? 'Não disponível' : new Intl.NumberFormat('pt-BR').format(valor);
 
 function formatarPeriodoRelatorio() {
   const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
@@ -136,9 +130,7 @@ function atualizarCabecalhoRelatorio() {
   const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const uf = municipioUf[selectMunicipio.value] || '';
   const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : formatarPeriodoRelatorio();
-  document.querySelector('.print-identification h1').textContent = currentTopic === 'Cobertura da APS'
-    ? 'Relatório de Cobertura da Atenção Primária'
-    : 'Relatório de Produção da Atenção Primária';
+  document.querySelector('.print-identification h1').textContent = `Relatório de ${currentTopic === 'Cobertura da APS' ? 'Cobertura' : currentTopic} da Atenção Primária`;
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
     day: '2-digit',
@@ -172,38 +164,23 @@ function atualizarCabecalhoRelatorio() {
   `;
 }
 
-function gerarDadosDemonstrativos(indicador, meses) {
-  return meses.map((competencia, indice) => {
-    const [mes, ano] = competencia.split('/').map(Number);
-    const variacao = ((mes * 17 + ano + indice * 9) % 19) - 9;
-    const atendimentos = Math.max(0, Math.round(indicador.baseAtendimentos * (1 + variacao / 100)));
-    const pessoas = Math.max(0, Math.round(indicador.basePessoas * (1 + variacao / 120)));
-    return { competencia, atendimentos, pessoas };
-  });
+function obterDadosProducao(indicador, meses) {
+  return meses.map(competencia => dadosFonte.dados.producao.find(row => row.tipo === indicador.tipo && row.competencia === competencia)).filter(Boolean);
 }
 
 function renderizarDetalhamentoVisitas(mesesResumo, mesesGrafico = mesesResumo) {
-  const numeroAcsDemonstrativo = 8;
-  const diasUteisPorMes = 20;
-  const gerarDadosVisitas = (competencias) => competencias.map((competencia) => {
-    const [mes, ano] = competencia.split('/').map(Number);
-    const variacao = ((mes * 13 + ano) % 17) - 8;
-    return {
-      competencia,
-      realizadas: Math.round(1050 * (1 + variacao / 100)),
-      recusadas: Math.round(28 * (1 + variacao / 55)),
-      ausentes: Math.round(96 * (1 + variacao / 75))
-    };
-  });
-  const dadosResumo = gerarDadosVisitas(mesesResumo);
-  const dados = gerarDadosVisitas(mesesGrafico);
+  const obter = meses => meses.map(mes => dadosFonte.dados.visitas.find(row => row.competencia === mes)).filter(row => row && ['realizadas','recusadas','ausentes'].every(k => row[k] != null));
+  const dadosResumo = obter(mesesResumo);
+  const dados = obter(mesesGrafico);
+  if (!dados.length || !dadosResumo.length) return '<article class="acs-detail-panel"><h3>Detalhamento das Visitas ACS</h3><p>Não há dados de visitas ACS disponibilizados para o período selecionado.</p></article>';
   const realizadas = dadosResumo.reduce((total, item) => total + item.realizadas, 0);
   const recusadas = dadosResumo.reduce((total, item) => total + item.recusadas, 0);
   const ausentes = dadosResumo.reduce((total, item) => total + item.ausentes, 0);
   const visitasTotais = realizadas + recusadas + ausentes;
-  const mediaMes = realizadas / Math.max(1, numeroAcsDemonstrativo * mesesResumo.length);
-  const mediaDia = realizadas / Math.max(1, numeroAcsDemonstrativo * mesesResumo.length * diasUteisPorMes);
-  const formatarMedia = (valor) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const acsMeses = dadosResumo.every(row => row.qtdAcs > 0) ? dadosResumo.reduce((s,row) => s + row.qtdAcs, 0) : null;
+  const mediaMes = acsMeses ? realizadas / acsMeses : null;
+  const mediaDia = mediaMes == null ? null : mediaMes / 22;
+  const formatarMedia = (valor) => valor == null ? 'Não disponível' : valor.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
   const largura = Math.max(1100, dados.length * 110);
   const altura = 285;
@@ -234,6 +211,7 @@ function renderizarDetalhamentoVisitas(mesesResumo, mesesGrafico = mesesResumo) 
   return `
     <article class="acs-detail-panel">
       <h3>Detalhamento das Visitas ACS</h3>
+      <p class="indicator-note">Competências incluídas no resumo: ${dadosResumo.map(row => row.competencia).join(', ')}. Média mensal: visitas realizadas divididas pela soma de ACS de cada competência. Média diária estimada: média mensal dividida por 22, conforme critério do Painel CONASEMS. ${dadosResumo.length < mesesResumo.length ? 'Há competências sem dados; o somatório é parcial.' : ''}</p>
       <div class="acs-summary">
         <div class="acs-summary-card green"><span>Visitas Realizadas</span><strong>${formatarNumero(realizadas)}</strong></div>
         <div class="acs-summary-card red"><span>Visitas Recusadas</span><strong>${formatarNumero(recusadas)}</strong></div>
@@ -270,7 +248,8 @@ function renderizarProducao(meses) {
   const periodoLabel = selectPeriodo.options[selectPeriodo.selectedIndex]?.text || '';
   const periodoRelatorio = formatarPeriodoRelatorio();
   const quadrosPrincipais = indicadoresProducao.map((indicador) => {
-    const dados = gerarDadosDemonstrativos(indicador, meses);
+    const dados = obterDadosProducao(indicador, meses).filter(row => row.atendimentos != null && row.pessoas != null);
+    if (!dados.length) return `<article class="indicator-panel"><h3>${indicador.nome}</h3><p>Não há dados disponíveis para este indicador no período selecionado.</p></article>`;
     const totalAtendimentos = dados.reduce((total, item) => total + item.atendimentos, 0);
     const totalPessoas = dados.reduce((total, item) => total + item.pessoas, 0);
     const maiorValor = Math.max(...dados.flatMap((item) => [item.atendimentos, item.pessoas]), 1);
@@ -279,11 +258,11 @@ function renderizarProducao(meses) {
         <div class="grouped-bars">
           <div class="series-column">
             <span class="column-value">${formatarNumero(item.atendimentos)}</span>
-            <div class="column-bar attendances" style="height:${Math.max(5, (item.atendimentos / maiorValor) * 95)}px" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
+            <div class="column-bar attendances" style="height:calc(var(--column-max-height, 95px) * ${item.atendimentos / maiorValor});min-height:0" title="${item.competencia}: ${formatarNumero(item.atendimentos)} atendimentos"></div>
           </div>
           <div class="series-column">
             <span class="column-value">${formatarNumero(item.pessoas)}</span>
-            <div class="column-bar people" style="height:${Math.max(5, (item.pessoas / maiorValor) * 95)}px" title="${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas"></div>
+            <div class="column-bar people" style="height:calc(var(--column-max-height, 95px) * ${item.pessoas / maiorValor});min-height:0" title="${item.competencia}: ${formatarNumero(item.pessoas)} pessoas atendidas"></div>
           </div>
         </div>
         <span class="column-label">${item.competencia}</span>
@@ -327,8 +306,8 @@ function renderizarProducao(meses) {
       </div>
     `;
     const barrasHorizontais = dados.map((item) => {
-      const larguraAtendimentos = Math.max(5, (item.atendimentos / maiorValor) * 100);
-      const larguraPessoas = Math.max(5, (item.pessoas / maiorValor) * 100);
+      const larguraAtendimentos = (item.atendimentos / maiorValor) * 100;
+      const larguraPessoas = (item.pessoas / maiorValor) * 100;
       return `
         <div class="horizontal-chart-group">
           <span class="horizontal-competence">${item.competencia}</span>
@@ -372,6 +351,7 @@ function renderizarProducao(meses) {
           </div>
         </div>
         <p class="indicator-note">
+          Competências com dados: ${dados.map(row => row.competencia).join(', ')}. ${dados.length < meses.length ? 'Somatório parcial: há competências sem dados para este indicador.' : ''}
           ${indicador.descricao} durante o período de referência analisado, que compreende: ${periodoRelatorio}.
           <span><strong>Fonte:</strong> ${fonteSiaps}</span>
         </p>
@@ -381,15 +361,23 @@ function renderizarProducao(meses) {
   let mesesGraficoVisitas = meses;
   if (tipoPeriodo === 'mensal' && meses.length === 1) {
     const [mesConsultado, anoConsultado] = meses[0].split('/').map(Number);
-    mesesGraficoVisitas = competenciasDisponiveis.filter((competencia) => {
+    mesesGraficoVisitas = ordenarCompetencias(dadosFonte.dados.visitas.map(row => row.competencia)).filter((competencia) => {
       const [mes, ano] = competencia.split('/').map(Number);
       return ano === anoConsultado && mes <= mesConsultado;
     });
   }
-  productionIndicators.innerHTML = quadrosPrincipais + renderizarDetalhamentoVisitas(meses, mesesGraficoVisitas);
+  const esperado = tipoPeriodo === 'anual' ? 12 : tipoPeriodo === 'quadrimestral' ? 4 : 1;
+  const aviso = meses.length < esperado ? `<p class="indicator-note">Período com dados parciais: ${meses.length} de ${esperado} competências disponíveis no CONASEMS. Os totais abrangem somente os meses listados em cada quadro.</p>` : '';
+  productionIndicators.innerHTML = aviso + quadrosPrincipais + renderizarDetalhamentoVisitas(meses, mesesGraficoVisitas);
 }
 
 function obterOpcoes(tipo) {
+  if (currentTopic === 'Cofinanciamento') {
+    const quadrimestres = [...new Set(dadosFonte.dados.map(row => row.quadrimestre))].sort().reverse();
+    if (tipo === 'mensal') return [];
+    if (tipo === 'anual') return [...new Set(quadrimestres.map(q => q.slice(0,4)))].map(ano => ({ value: ano, label: ano, meses: [] }));
+    return quadrimestres.map(q => ({ value: `${q[5]}-${q.slice(0,4)}`, label: `${q[5]}º Quadrimestre/${q.slice(0,4)}`, meses: [] }));
+  }
   if (tipo === 'mensal') {
     return competenciasDisponiveis.map((competencia) => ({
       value: competencia,
@@ -415,14 +403,45 @@ function obterOpcoes(tipo) {
       return anoItem === ano && Number(mes) >= inicio && Number(mes) <= inicio + 3;
     });
     return { value: `${numero}-${ano}`, label: `${numero}º Quadrimestre/${ano}`, meses };
-  })).filter((item) => item.meses.length === 4);
+  })).filter((item) => item.meses.length > 0);
 }
 
-function atualizarMunicipioSelecionado() {
+function mostrarStatus(texto) {
+  const status = document.querySelector('#source-status');
+  status.textContent = texto;
+  status.hidden = !texto;
+}
+
+function renderizarFinanceiro() {
+  const tipo = document.querySelector('input[name="periodo-tipo"]:checked').value;
+  const ref = selectPeriodo.value;
+  let rows;
+  let headers;
+  if (currentTopic === 'Cofinanciamento') {
+    const [q, ano] = ref.split('-');
+    rows = dadosFonte.dados.filter(row => tipo === 'anual' ? row.quadrimestre.startsWith(ref) : row.quadrimestre === `${ano}Q${q}`)
+      .map(row => [row.quadrimestre.replace(/(\d{4})Q([1-3])/, '$2º Quadrimestre/$1'), row.equipe, row.componente, row.indicador, ...['regular','suficiente','bom','otimo'].map(k => formatarNumero(row[k]))]);
+    headers = ['Quadrimestre','Equipe','Componente','Indicador','Regular','Suficiente','Bom','Ótimo'];
+  } else {
+    const meses = selectPeriodo.options[selectPeriodo.selectedIndex].dataset.meses.split(',');
+    const moeda = valor => valor == null ? 'Não disponível' : valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    rows = dadosFonte.dados.filter(row => meses.includes(row.competencia)).map(row => [row.competencia, row.parcela, moeda(row.desconto), moeda(row.repasse), moeda(row.implantacao)]);
+    headers = ['Competência CNES','Parcela','Desconto','Valor efetivo de repasse','Total da implantação'];
+  }
+  productionIndicators.innerHTML = `<article class="indicator-panel"><h3>${escapar(currentTopic)}</h3><div class="source-table-wrap"><table class="source-table"><thead><tr>${headers.map(h => `<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(v => `<td>${escapar(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="indicator-note">Fonte: Painéis CONASEMS. ${currentTopic === 'Cofinanciamento' ? 'Classificação das equipes por indicador e quadrimestre. Os registros quadrimestrais não são convertidos em valores mensais.' : 'Valores apresentados por competência CNES e parcela, conforme o detalhamento da fonte.'}</p></article>`;
+  productionDashboard.hidden = false;
+  printButton.disabled = !rows.length;
+}
+
+async function atualizarMunicipioSelecionado() {
+  const versao = ++sequenciaConsulta;
+  consultaEmCurso?.abort();
+  dadosFonte = null;
+  competenciasDisponiveis = [];
   coberturaAtual = null;
   const municipioSelecionado = Boolean(selectMunicipio.value);
   periodTypeInputs.forEach((input) => {
-    input.disabled = !municipioSelecionado;
+    input.disabled = true;
     input.checked = false;
   });
   selectPeriodo.innerHTML = municipioSelecionado
@@ -434,11 +453,39 @@ function atualizarMunicipioSelecionado() {
   productionDashboard.hidden = true;
   printButton.disabled = true;
   productionIndicators.innerHTML = '';
-  if (currentTopic === 'Cobertura da APS' && municipioSelecionado) renderizarCobertura();
+  document.querySelector('#retry-source').hidden = true;
+  mostrarStatus('');
+  if (!municipioSelecionado) return;
+  mostrarStatus('Consultando dados do Painel CONASEMS…');
+  const tema = ({'Produção':'producao','Cobertura da APS':'cobertura','Financiamento':'financiamento','Cofinanciamento':'cofinanciamento'})[currentTopic];
+  consultaEmCurso = new AbortController();
+  try {
+    const response = await fetch(`/api/conasems?tema=${tema}&ibge=${encodeURIComponent(selectMunicipio.value)}`, {signal: consultaEmCurso.signal});
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Falha ao consultar o CONASEMS.');
+    if (versao !== sequenciaConsulta) return;
+    if (result.ibge !== selectMunicipio.value || result.tema !== tema) throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
+    dadosFonte = result;
+    mostrarStatus(`Fonte: Painéis CONASEMS. Consulta: ${new Date(result.consultadoEm).toLocaleString('pt-BR')}. ${result.aviso || ''}`);
+    if (result.aviso) document.querySelector('#retry-source').hidden = false;
+    if (tema === 'cobertura') { renderizarCobertura(); return; }
+    const rows = tema === 'producao' ? result.dados.producao : result.dados;
+    if (!rows.length) { mostrarStatus('O CONASEMS não disponibilizou registros para este município e tema.'); return; }
+    competenciasDisponiveis = ordenarCompetencias(rows.map(row => row.competencia).filter(Boolean));
+    periodTypeInputs.forEach(input => {
+      input.disabled = tema === 'cofinanciamento' && input.value === 'mensal';
+      input.closest('label').hidden = tema === 'cofinanciamento' && input.value === 'mensal';
+    });
+  } catch (error) {
+    if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
+    dadosFonte = null;
+    mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta do servidor. Tente novamente.' : error.message);
+    document.querySelector('#retry-source').hidden = false;
+  }
 }
 
 function preencherPeriodos(tipo) {
-  if (!selectMunicipio.value) return;
+  if (!selectMunicipio.value || !dadosFonte) return;
   const opcoes = obterOpcoes(tipo);
   selectPeriodo.innerHTML = '<option value="">Selecione a referência</option>';
   opcoes.forEach((opcao) => {
@@ -456,6 +503,7 @@ function preencherPeriodos(tipo) {
 
 selectMunicipio.addEventListener('change', atualizarMunicipioSelecionado);
 selectPeriodo.addEventListener('change', () => {
+  if (!dadosFonte) return;
   const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
   const meses = (periodoSelecionado.dataset.meses || '').split(',').filter(Boolean);
   emptyState.dataset.competencias = meses.join(',');
@@ -464,7 +512,9 @@ selectPeriodo.addEventListener('change', () => {
   productionDashboard.hidden = !referenciaSelecionada || currentTopic !== 'Produção';
   printButton.disabled = !referenciaSelecionada || currentTopic !== 'Produção';
   if (referenciaSelecionada && currentTopic === 'Produção') renderizarProducao(meses);
+  if (referenciaSelecionada && ['Financiamento','Cofinanciamento'].includes(currentTopic)) { emptyState.hidden = true; renderizarFinanceiro(); }
 });
+document.querySelector('#retry-source').addEventListener('click', atualizarMunicipioSelecionado);
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
 
 topicButtons.forEach((button) => {
@@ -476,6 +526,7 @@ topicButtons.forEach((button) => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
+    periodTypeInputs.forEach(input => { input.closest('label').hidden = false; });
     const cobertura = currentTopic === 'Cobertura da APS';
     detail.classList.toggle('coverage-mode', cobertura);
     document.querySelector('.period-types').hidden = cobertura;
@@ -512,6 +563,9 @@ window.addEventListener('beforeprint', () => {
 });
 
 document.querySelector('#voltar').addEventListener('click', () => {
+  ++sequenciaConsulta;
+  consultaEmCurso?.abort();
+  dadosFonte = null;
   detail.hidden = true;
   topics.hidden = false;
   topicButtons.forEach((button) => button.classList.remove('active'));
