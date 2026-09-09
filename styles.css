@@ -1079,6 +1079,7 @@ select:focus {
 .aps-quick { background: #e8faf6; border-radius: 10px; padding: 20px; border-left: 1px solid #c9def2; }
 .aps-quick h4 { margin: 0 0 10px; font-size: 22px; }
 .aps-quick > strong { font-size: clamp(32px,4.2vw,56px); color: #18bfa7; line-height: 1.1; }
+.aps-quick-alert { background: #fad5de; }
 .aps-quick-alert > strong { color: #ff2e60; }
 .aps-quick p { color: #537eb6; line-height: 1.4; font-size: 17px; margin: 6px 0 0; }
 .aps-panel-heading { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 18px; }
