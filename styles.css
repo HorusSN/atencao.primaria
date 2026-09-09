@@ -284,6 +284,12 @@ select:focus {
 .cofinance-table th + th,
 .cofinance-table td + td { border-left: 1px solid #E1EBF5; }
 .cofinance-table .result-column { width: 9%; min-width: 82px; text-align: center; font-variant-numeric: tabular-nums; }
+.cofinance-table .result-regular { color: #ff5c00; font-weight: 800; }
+.cofinance-table .result-suficiente { color: #ffbf00; font-weight: 800; }
+.cofinance-table .result-bom { color: #27bda6; font-weight: 800; }
+.cofinance-table .result-otimo { color: #0836f6; font-weight: 800; }
+.cofinance-table .result-empty { color: #708096; font-weight: 500; }
+.cofinance-table .indicator-code { color: #214772; font-weight: 800; }
 .cofinance-table th:first-child { width: 16%; min-width: 145px; }
 .cofinance-table th:nth-child(2) { width: 48%; }
 @media print {
