@@ -419,6 +419,10 @@ periodTypeInputs.forEach((input) => input.addEventListener('change', () => preen
 
 topicButtons.forEach((button) => {
   button.addEventListener('click', () => {
+    if (button.dataset.externalUrl) {
+      window.location.href = button.dataset.externalUrl;
+      return;
+    }
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
