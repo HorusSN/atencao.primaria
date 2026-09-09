@@ -844,34 +844,36 @@ select:focus {
     break-inside: avoid-page;
     page-break-inside: avoid;
     margin: 0 0 6mm;
-    padding: 4mm;
+    padding: 5mm;
     border: 0.6pt solid #D7DEE4;
-    border-radius: 3mm;
-    background: #FFFFFF;
+    border-radius: 4mm;
+    background: #F7F9FB;
     box-shadow: none;
   }
 
   .indicator-panel > h3,
   .acs-detail-panel > h3 {
-    margin: 0 0 3mm;
-    color: #214772;
-    font-size: 12pt;
-    text-transform: uppercase;
+    margin: 0 0 4mm;
+    color: var(--navy);
+    font-size: 13pt;
+    text-transform: none;
   }
 
   .indicator-content {
     width: 100% !important;
     min-width: 0 !important;
-    grid-template-columns: 30% minmax(0, 1fr);
-    gap: 3mm;
+    grid-template-columns: 27% minmax(0, 1fr);
+    gap: 4mm;
   }
 
   .indicator-note {
-    margin-top: 3mm;
-    padding: 2.5mm 3mm;
-    border-left-width: 1mm;
-    font-size: 6.8pt;
-    line-height: 1.4;
+    margin-top: 4mm;
+    padding: 3mm 4mm;
+    border-left: 1.2mm solid #214772;
+    background: #EDF3F7;
+    color: #536B86;
+    font-size: 7.3pt;
+    line-height: 1.45;
   }
 
   .total-card,
@@ -880,18 +882,22 @@ select:focus {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    box-shadow: none;
-    border: 0.5pt solid #DFE5EA;
+    border: 0;
+    border-radius: 3mm;
+    background: #FFFFFF;
+    box-shadow: 0 1.5mm 5mm rgba(14, 27, 43, 0.07);
   }
 
-  .total-metric { padding: 4mm; }
-  .total-metric span { font-size: 6.8pt; }
-  .total-metric strong { font-size: 17pt; }
+  .total-metric { padding: 5mm; }
+  .total-metric:first-child { border-left-width: 1.5mm; }
+  .total-metric:last-child { border-left-width: 1.5mm; }
+  .total-metric span { font-size: 7.2pt; }
+  .total-metric strong { font-size: 20pt; }
 
-  .chart-card { padding: 3mm 3mm 2mm; overflow: hidden; }
-  .chart-heading { gap: 3mm; margin-bottom: 2mm; }
-  .chart-title { font-size: 6.8pt; }
-  .chart-legend { gap: 2.5mm; font-size: 6.5pt; }
+  .chart-card { padding: 4mm 4mm 3mm; overflow: hidden; }
+  .chart-heading { gap: 3mm; margin-bottom: 3mm; }
+  .chart-title { font-size: 7.2pt; }
+  .chart-legend { gap: 3mm; font-size: 7pt; }
 
   .column-chart {
     min-width: 0;
