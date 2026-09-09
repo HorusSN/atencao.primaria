@@ -11,6 +11,51 @@ const productionIndicators = document.querySelector('#production-indicators');
 const printButton = document.querySelector('#imprimir');
 let currentTopic = '';
 
+// Somente registros verificados da fonte de cobertura devem ser incluídos aqui.
+// Formato: { municipio, competencia: 'YYYY-MM', aps, bucal, acs }.
+const registrosCobertura = [];
+let coberturaAtual = null;
+
+function obterCoberturaMaisRecente(municipio) {
+  return registrosCobertura
+    .filter((item) => item.municipio === municipio && /^\d{4}-(0[1-9]|1[0-2])$/.test(item.competencia))
+    .sort((a, b) => b.competencia.localeCompare(a.competencia))[0] || null;
+}
+
+function referenciaCobertura() {
+  if (!coberturaAtual) return 'Competência indisponível: aguardando dados de cobertura';
+  const [ano, mes] = coberturaAtual.competencia.split('-');
+  return `Competência mais recente disponível: ${mes}/${ano}`;
+}
+
+function renderizarCobertura() {
+  coberturaAtual = obterCoberturaMaisRecente(selectMunicipio.value);
+  const indicadores = [
+    { chave: 'aps', titulo: 'Cobertura Potencial da APS', classe: 'blue' },
+    { chave: 'bucal', titulo: 'Cobertura de Saúde Bucal', classe: 'green' },
+    { chave: 'acs', titulo: 'Cobertura de ACS', classe: 'amber' }
+  ];
+  productionIndicators.innerHTML = `
+    <article class="indicator-panel coverage-panel">
+      <h3>Cobertura Atual</h3>
+      <p class="coverage-reference">${referenciaCobertura()}</p>
+      <div class="coverage-grid">
+        ${indicadores.map(({ chave, titulo, classe }) => {
+          const valor = coberturaAtual?.[chave];
+          const disponivel = typeof valor === 'number' && Number.isFinite(valor) && valor >= 0;
+          return `<section class="coverage-card ${classe}">
+            <h4>${titulo}</h4>
+            <strong>${disponivel ? valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%' : 'Não disponível'}</strong>
+            <p>${disponivel ? 'Percentual de cobertura do município' : 'Aguardando dados oficiais do município'}</p>
+          </section>`;
+        }).join('')}
+      </div>
+      <p class="indicator-note"><strong>Cobertura Potencial da Atenção Primária à Saúde (APS):</strong> Refere-se à proporção da população potencialmente coberta pelas Equipes de Saúde da Família e/ou Equipes de Atenção Primária credenciadas no município. Esse indicador estima a capacidade instalada para ofertar ações de atenção primária, considerando o número de equipes ativas e sua população adscrita teórica.</p>
+    </article>`;
+  productionDashboard.hidden = false;
+  printButton.disabled = false;
+}
+
 const competenciasDisponiveis = [
   ...Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2024`),
   ...Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}/2025`),
@@ -90,7 +135,10 @@ function formatarPeriodoRelatorio() {
 function atualizarCabecalhoRelatorio() {
   const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const uf = municipioUf[selectMunicipio.value] || '';
-  const periodo = formatarPeriodoRelatorio();
+  const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : formatarPeriodoRelatorio();
+  document.querySelector('.print-identification h1').textContent = currentTopic === 'Cobertura da APS'
+    ? 'Relatório de Cobertura da Atenção Primária'
+    : 'Relatório de Produção da Atenção Primária';
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
     day: '2-digit',
@@ -371,6 +419,7 @@ function obterOpcoes(tipo) {
 }
 
 function atualizarMunicipioSelecionado() {
+  coberturaAtual = null;
   const municipioSelecionado = Boolean(selectMunicipio.value);
   periodTypeInputs.forEach((input) => {
     input.disabled = !municipioSelecionado;
@@ -385,6 +434,7 @@ function atualizarMunicipioSelecionado() {
   productionDashboard.hidden = true;
   printButton.disabled = true;
   productionIndicators.innerHTML = '';
+  if (currentTopic === 'Cobertura da APS' && municipioSelecionado) renderizarCobertura();
 }
 
 function preencherPeriodos(tipo) {
@@ -426,6 +476,13 @@ topicButtons.forEach((button) => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
+    const cobertura = currentTopic === 'Cobertura da APS';
+    detail.classList.toggle('coverage-mode', cobertura);
+    document.querySelector('.period-types').hidden = cobertura;
+    document.querySelector('.period-value > label').hidden = cobertura;
+    selectPeriodo.closest('.select-wrap').hidden = cobertura;
+    periodFilter.setAttribute('aria-label', cobertura ? 'Ações do relatório' : 'Seleção do período');
+    productionDashboard.setAttribute('aria-label', cobertura ? 'Indicadores de cobertura' : 'Indicadores de produção');
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
       ? 'Produção da Atenção Primária'
       : button.dataset.topic;
@@ -442,7 +499,7 @@ printButton.addEventListener('click', () => {
   atualizarCabecalhoRelatorio();
   const tituloAnterior = document.title;
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
-  const periodo = selectPeriodo.options[selectPeriodo.selectedIndex].text;
+  const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : selectPeriodo.options[selectPeriodo.selectedIndex].text;
   document.title = `Relatório APS - ${municipio} - ${periodo}`;
   window.addEventListener('afterprint', () => {
     document.title = tituloAnterior;
