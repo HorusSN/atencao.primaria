@@ -916,6 +916,8 @@ select:focus {
     padding: 4mm 1mm 0;
   }
 
+  .column-bar { max-height: 24mm !important; }
+
   .month-group { min-width: 0; }
   .column-value { font-size: 6.5pt; }
   .column-label { min-height: 5mm; font-size: 6.5pt; }
