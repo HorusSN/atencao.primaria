@@ -888,6 +888,16 @@ select:focus {
     box-shadow: 0 1.5mm 5mm rgba(14, 27, 43, 0.07);
   }
 
+  .total-card {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+  }
+
+  .total-metric + .total-metric {
+    border-top: 1px solid var(--light);
+    border-left: 0;
+  }
+
   .total-metric { padding: 5mm; }
   .total-metric:first-child { border-left-width: 1.5mm; }
   .total-metric:last-child { border-left-width: 1.5mm; }
