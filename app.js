@@ -206,7 +206,9 @@ function atualizarCabecalhoRelatorio() {
   const nomeMunicipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const uf = municipioUf[selectMunicipio.value] || '';
   const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : formatarPeriodoRelatorio();
-  document.querySelector('.print-identification h1').textContent = `Relatório de ${currentTopic === 'Cobertura da APS' ? 'Cobertura' : currentTopic} da Atenção Primária`;
+  document.querySelector('.print-identification h1').textContent = currentTopic === 'Financiamento'
+    ? 'Repasses do Fundo Nacional de Saúde (FNS)'
+    : `Relatório de ${currentTopic === 'Cobertura da APS' ? 'Cobertura' : currentTopic} da Atenção Primária`;
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
     day: '2-digit',
@@ -900,7 +902,9 @@ topicButtons.forEach((button) => {
     productionDashboard.setAttribute('aria-label', cobertura ? 'Indicadores de cobertura' : 'Indicadores de produção');
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
       ? 'Produção da Atenção Primária'
-      : button.dataset.topic;
+      : currentTopic === 'Financiamento'
+        ? 'Repasses do Fundo Nacional de Saúde (FNS)'
+        : button.dataset.topic;
     selectMunicipio.value = '';
     atualizarMunicipioSelecionado();
     topics.hidden = true;
