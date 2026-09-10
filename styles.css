@@ -275,6 +275,13 @@ select:focus {
 .source-table th, .source-table td { padding: 12px; border-bottom: 1px solid #D7DEE4; text-align: left; }
 .source-table th { background: #E6EAED; }
 .fns-panel { border-top: 4px solid #1A73E9; background: #F7FAFE; }
+.fns-summary-panel { border-top: 4px solid #14c4ab; background: #F7FCFB; }
+.fns-summary-panel > h3 { color: #214772; }
+.fns-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.fns-summary-card { min-width: 0; min-height: 146px; display: flex; flex-direction: column; justify-content: center; padding: 20px; border: 1px solid #D9ECE8; border-left: 5px solid #14c4ab; border-radius: 12px; background: #FFFFFF; box-shadow: 0 7px 20px rgba(20, 196, 171, 0.08); }
+.fns-summary-card > span { color: #5B6D83; font-size: 0.78rem; font-weight: 800; line-height: 1.35; text-transform: uppercase; }
+.fns-summary-card > strong { margin-top: 10px; color: #214772; font-size: clamp(1.35rem, 2.2vw, 2.1rem); line-height: 1.05; overflow-wrap: anywhere; }
+.fns-summary-card > small { margin-top: 10px; color: #14a790; font-size: 0.77rem; font-weight: 700; line-height: 1.35; }
 .fns-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 .fns-panel-heading h3 { margin: 0; color: #214772; }
 .fns-panel-heading p { margin: 6px 0 0; color: #53657C; font-size: 0.82rem; }
@@ -327,6 +334,12 @@ select:focus {
   .cofinance-table th:first-child { width: 18%; min-width: 0; }
   .cofinance-table th:nth-child(2) { width: 42%; }
   .fns-panel { break-inside: auto; page-break-inside: auto; }
+  .fns-summary-panel { break-inside: avoid-page; page-break-inside: avoid; }
+  .fns-summary-grid { gap: 2mm; }
+  .fns-summary-card { min-height: 24mm; padding: 3mm; border-left-width: 1.2mm; border-radius: 3mm; }
+  .fns-summary-card > span { font-size: 6.5pt; }
+  .fns-summary-card > strong { margin-top: 1.5mm; font-size: 13pt; }
+  .fns-summary-card > small { margin-top: 1.5mm; font-size: 6.5pt; }
   .fns-table { width: 100%; min-width: 0; font-size: 6.6pt; table-layout: fixed; }
   .fns-table th, .fns-table td { padding: 1.6mm 1.2mm; overflow-wrap: anywhere; }
   .fns-panel-heading > strong { font-size: 7pt; }
@@ -343,6 +356,7 @@ select:focus {
 .coverage-card strong { display: block; font-size: clamp(1.25rem, 2vw, 2rem); color: var(--navy); overflow-wrap: anywhere; }
 .coverage-card p { margin: 18px 0 0; font-size: 0.875rem; line-height: 1.5; color: #687585; }
 @media screen and (max-width: 860px) { .coverage-grid { grid-template-columns: 1fr; } }
+@media screen and (max-width: 980px) { .fns-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media screen and (max-width: 560px) { .coverage-mode .filter-layout { grid-template-columns: 1fr; justify-content: stretch; } }
 @media print {
   .coverage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3mm; }
@@ -760,6 +774,8 @@ select:focus {
   .topics button { min-height: 74px; }
   .dashboard-footer { margin: 30px -16px -16px; }
   .fns-panel { padding: 16px; }
+  .fns-summary-grid { grid-template-columns: 1fr; }
+  .fns-summary-card { min-height: 122px; }
   .fns-panel-heading { align-items: stretch; flex-direction: column; }
   .fns-panel-heading > strong { align-self: flex-start; }
 }
