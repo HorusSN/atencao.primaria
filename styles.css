@@ -274,6 +274,29 @@ select:focus {
 .source-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .source-table th, .source-table td { padding: 12px; border-bottom: 1px solid #D7DEE4; text-align: left; }
 .source-table th { background: #E6EAED; }
+.fns-panel { border-top: 4px solid #1A73E9; background: #F7FAFE; }
+.fns-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+.fns-panel-heading h3 { margin: 0; color: #214772; }
+.fns-panel-heading p { margin: 6px 0 0; color: #53657C; font-size: 0.82rem; }
+.fns-panel-heading > strong { flex: 0 0 auto; padding: 8px 11px; border-radius: 999px; background: #EAF3FC; color: #214772; font-size: 0.76rem; }
+.fns-table { min-width: 900px; border: 1px solid #C6DAF0; border-collapse: separate; border-spacing: 0; overflow: hidden; border-radius: 10px; background: #FFFFFF; }
+.fns-table th { padding: 12px 13px; border-bottom: 2px solid #B7D2EF; background: #EAF3FC; color: #214772; font-size: 0.76rem; font-weight: 800; text-transform: uppercase; }
+.fns-table td { padding: 12px 13px; border-bottom-color: #E1EBF5; color: #294159; vertical-align: top; line-height: 1.45; }
+.fns-table th + th, .fns-table td + td { border-left: 1px solid #E1EBF5; }
+.fns-table tbody tr:nth-child(even) td { background: #F7FBFF; }
+.fns-table tbody tr:hover td { background: #EDF5FE; }
+.fns-table th:first-child { min-width: 122px; }
+.fns-table th:nth-child(2) { min-width: 210px; }
+.fns-table th:nth-child(3) { min-width: 280px; }
+.fns-table th:nth-child(4) { min-width: 145px; }
+.fns-table th:nth-child(5), .fns-table th:nth-child(6) { min-width: 110px; }
+.fns-table th:last-child { min-width: 145px; text-align: right; }
+.fns-block { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 800; white-space: nowrap; }
+.fns-maintenance { background: #E8F6EF; color: #16895D; }
+.fns-structure { background: #EAF3FC; color: #1A73E9; }
+.fns-identifier { color: #214772 !important; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
+.fns-currency { color: #16895D !important; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; font-weight: 800; text-align: right; white-space: nowrap; }
+.fns-empty { padding: 22px !important; color: #53657C !important; text-align: center; }
 .cofinance-panel { border-top: 4px solid #1A73E9; background: #F7FAFE; }
 .cofinance-panel > h3 { color: #214772; }
 .cofinance-table { border: 1px solid #D6E3F3; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; background: #FFFFFF; }
@@ -303,6 +326,10 @@ select:focus {
   .cofinance-table .result-column { width: 10%; min-width: 0; }
   .cofinance-table th:first-child { width: 18%; min-width: 0; }
   .cofinance-table th:nth-child(2) { width: 42%; }
+  .fns-panel { break-inside: auto; page-break-inside: auto; }
+  .fns-table { width: 100%; min-width: 0; font-size: 6.6pt; table-layout: fixed; }
+  .fns-table th, .fns-table td { padding: 1.6mm 1.2mm; overflow-wrap: anywhere; }
+  .fns-panel-heading > strong { font-size: 7pt; }
 }
 
 .coverage-mode .filter-layout { grid-template-columns: minmax(230px, 340px) auto; justify-content: start; }
@@ -732,6 +759,9 @@ select:focus {
   .topics { grid-template-columns: 1fr; }
   .topics button { min-height: 74px; }
   .dashboard-footer { margin: 30px -16px -16px; }
+  .fns-panel { padding: 16px; }
+  .fns-panel-heading { align-items: stretch; flex-direction: column; }
+  .fns-panel-heading > strong { align-self: flex-start; }
 }
 
 @media print {
