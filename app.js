@@ -165,14 +165,16 @@ function identificarIndicadorCofinanciamento(row) {
 }
 
 const municipioUf = {
+  '350840': 'SP',
+  '351510': 'SP',
   '311210': 'MG',
   '312370': 'MG',
   '312580': 'MG',
-  '350840': 'SP',
   '520890': 'GO',
   '315800': 'MG',
   '316020': 'MG',
-  '316294': 'MG'
+  '316294': 'MG',
+  '316870': 'MG'
 };
 
 const formatarNumero = (valor) => valor == null || !Number.isFinite(valor) ? 'Não disponível' : new Intl.NumberFormat('pt-BR').format(valor);
@@ -607,6 +609,35 @@ function renderizarResumoAps(registros) {
 function renderizarFinanceiro() {
   const tipo = document.querySelector('input[name="periodo-tipo"]:checked').value;
   const ref = selectPeriodo.value;
+  if (currentTopic === 'Financiamento') {
+    const meses = selectPeriodo.options[selectPeriodo.selectedIndex].dataset.meses.split(',').filter(Boolean);
+    const moeda = valor => valor == null ? 'Não disponível' : valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const pagamentos = (dadosFonte.dados.pagamentos || []).filter(row => {
+      if (!row.competenciaFiltro) return tipo === 'anual';
+      return meses.includes(row.competenciaFiltro);
+    });
+    const linhas = pagamentos.map(row => `<tr>
+      <td><span class="fns-block fns-${row.bloco === 'Manutenção' ? 'maintenance' : 'structure'}">${escapar(row.bloco)}</span></td>
+      <td>${escapar(row.grupo)}</td>
+      <td>${escapar(row.acaoDetalhada)}</td>
+      <td>${escapar(row.competencia || 'Não informada')}</td>
+      <td class="fns-identifier">${escapar(row.agencia || 'Não informada')}</td>
+      <td class="fns-identifier">${escapar(row.conta || 'Não informada')}</td>
+      <td class="fns-currency">${moeda(row.valorLiquido)}</td>
+    </tr>`).join('');
+    const entidade = dadosFonte.entidade?.razaoSocial || selectMunicipio.options[selectMunicipio.selectedIndex].text;
+    productionIndicators.innerHTML = `<article class="indicator-panel fns-panel">
+      <div class="fns-panel-heading"><div><h3>Transferências do Fundo Nacional de Saúde</h3><p>${escapar(entidade)}</p></div><strong>${pagamentos.length} registros</strong></div>
+      <div class="source-table-wrap"><table class="source-table fns-table">
+        <thead><tr><th scope="col">Bloco</th><th scope="col">Grupo</th><th scope="col">Ação Detalhada</th><th scope="col">Competência</th><th scope="col">Agência</th><th scope="col">Conta</th><th scope="col">Valor Líquido</th></tr></thead>
+        <tbody>${linhas || '<tr><td colspan="7" class="fns-empty">Não há pagamentos para o período selecionado.</td></tr>'}</tbody>
+      </table></div>
+      <p class="indicator-note"><strong>Fonte:</strong> Fundo Nacional de Saúde (FNS). Dados consultados para o exercício de ${escapar(dadosFonte.ano || ref)}.</p>
+    </article>`;
+    productionDashboard.hidden = false;
+    printButton.disabled = pagamentos.length === 0;
+    return;
+  }
   let rows;
   let headers;
   if (currentTopic === 'Cofinanciamento') {
@@ -692,11 +723,14 @@ async function atualizarMunicipioSelecionado() {
   document.querySelector('#retry-source').hidden = true;
   mostrarStatus('');
   if (!municipioSelecionado) return;
-  mostrarStatus('Consultando dados do Painel CONASEMS…');
+  mostrarStatus(currentTopic === 'Financiamento' ? 'Consultando dados do Fundo Nacional de Saúde…' : 'Consultando dados do Painel CONASEMS…');
   const tema = ({'Produção':'producao','Cobertura da APS':'cobertura','Financiamento':'financiamento','Cofinanciamento':'cofinanciamento'})[currentTopic];
   consultaEmCurso = new AbortController();
   try {
-    const response = await fetch(`/api/conasems?tema=${tema}&ibge=${encodeURIComponent(selectMunicipio.value)}`, {signal: consultaEmCurso.signal});
+    const endpoint = currentTopic === 'Financiamento'
+      ? `/api/fns?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${new Date().getFullYear()}`
+      : `/api/conasems?tema=${tema}&ibge=${encodeURIComponent(selectMunicipio.value)}`;
+    const response = await fetch(endpoint, {signal: consultaEmCurso.signal});
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Falha ao consultar o CONASEMS.');
     if (versao !== sequenciaConsulta) return;
@@ -705,7 +739,11 @@ async function atualizarMunicipioSelecionado() {
     mostrarStatus(result.aviso || '');
     if (result.aviso) document.querySelector('#retry-source').hidden = false;
     if (tema === 'cobertura') { renderizarCobertura(); return; }
-    const rows = tema === 'producao' ? result.dados.producao : result.dados;
+    const rows = tema === 'producao'
+      ? result.dados.producao
+      : tema === 'financiamento'
+        ? result.dados.pagamentos
+        : result.dados;
     if (!rows.length) { mostrarStatus('O CONASEMS não disponibilizou registros para este município e tema.'); return; }
     competenciasDisponiveis = ordenarCompetencias(rows.map(row => row.competencia).filter(Boolean));
     periodTypeInputs.forEach(input => {
