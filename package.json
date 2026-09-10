@@ -2,6 +2,9 @@
   "name": "sistema-horus-aps",
   "version": "1.0.0",
   "private": true,
+  "dependencies": {
+    "xlsx": "0.18.5"
+  },
   "scripts": {
     "build": "mkdir -p dist && cp index.html styles.css app.js dist/"
   }
