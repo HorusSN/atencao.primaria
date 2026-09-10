@@ -447,7 +447,41 @@ function renderizarProducao(meses) {
   productionIndicators.innerHTML = aviso + quadrosPrincipais + renderizarDetalhamentoVisitas(meses, mesesGraficoVisitas);
 }
 
+const PRIMEIRO_EXERCICIO_FNS = 2016;
+
+function mesesDoExercicio(ano, inicio = 1, fim = 12) {
+  return Array.from({ length: fim - inicio + 1 }, (_, indice) => `${String(inicio + indice).padStart(2, '0')}/${ano}`);
+}
+
+function obterOpcoesFNS(tipo) {
+  const agora = new Date();
+  const anoAtual = agora.getFullYear();
+  const mesAtual = agora.getMonth() + 1;
+  const anos = Array.from({ length: anoAtual - PRIMEIRO_EXERCICIO_FNS + 1 }, (_, indice) => anoAtual - indice);
+
+  if (tipo === 'anual') return anos.map(ano => ({ value: String(ano), label: String(ano), meses: mesesDoExercicio(ano) }));
+
+  if (tipo === 'quadrimestral') {
+    return anos.flatMap(ano => {
+      const ultimoQuadrimestre = ano === anoAtual ? Math.floor(mesAtual / 4) : 3;
+      return Array.from({ length: ultimoQuadrimestre }, (_, indice) => ultimoQuadrimestre - indice).map(quadrimestre => {
+        const inicio = (quadrimestre - 1) * 4 + 1;
+        return { value: `${quadrimestre}-${ano}`, label: `${quadrimestre}º Quadrimestre/${ano}`, meses: mesesDoExercicio(ano, inicio, inicio + 3) };
+      });
+    });
+  }
+
+  return anos.flatMap(ano => {
+    const ultimoMes = ano === anoAtual ? mesAtual : 12;
+    return Array.from({ length: ultimoMes }, (_, indice) => ultimoMes - indice).map(mes => {
+      const competencia = `${String(mes).padStart(2, '0')}/${ano}`;
+      return { value: competencia, label: competencia, meses: [competencia] };
+    });
+  });
+}
+
 function obterOpcoes(tipo) {
+  if (currentTopic === 'Financiamento') return obterOpcoesFNS(tipo);
   if (currentTopic === 'Cofinanciamento') {
     const quadrimestres = [...new Set(dadosFonte.dados.map(row => row.quadrimestre))].sort().reverse();
     if (tipo === 'mensal') return [];
@@ -723,13 +757,15 @@ async function atualizarMunicipioSelecionado() {
   document.querySelector('#retry-source').hidden = true;
   mostrarStatus('');
   if (!municipioSelecionado) return;
-  mostrarStatus(currentTopic === 'Financiamento' ? 'Consultando dados do Fundo Nacional de Saúde…' : 'Consultando dados do Painel CONASEMS…');
+  if (currentTopic === 'Financiamento') {
+    periodTypeInputs.forEach(input => { input.disabled = false; input.closest('label').hidden = false; });
+    return;
+  }
+  mostrarStatus('Consultando dados do Painel CONASEMS…');
   const tema = ({'Produção':'producao','Cobertura da APS':'cobertura','Financiamento':'financiamento','Cofinanciamento':'cofinanciamento'})[currentTopic];
   consultaEmCurso = new AbortController();
   try {
-    const endpoint = currentTopic === 'Financiamento'
-      ? `/api/fns?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${new Date().getFullYear()}`
-      : `/api/conasems?tema=${tema}&ibge=${encodeURIComponent(selectMunicipio.value)}`;
+    const endpoint = `/api/conasems?tema=${tema}&ibge=${encodeURIComponent(selectMunicipio.value)}`;
     const response = await fetch(endpoint, {signal: consultaEmCurso.signal});
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Falha ao consultar o CONASEMS.');
@@ -741,9 +777,7 @@ async function atualizarMunicipioSelecionado() {
     if (tema === 'cobertura') { renderizarCobertura(); return; }
     const rows = tema === 'producao'
       ? result.dados.producao
-      : tema === 'financiamento'
-        ? result.dados.pagamentos
-        : result.dados;
+      : result.dados;
     if (!rows.length) { mostrarStatus('O CONASEMS não disponibilizou registros para este município e tema.'); return; }
     competenciasDisponiveis = ordenarCompetencias(rows.map(row => row.competencia).filter(Boolean));
     periodTypeInputs.forEach(input => {
@@ -758,8 +792,36 @@ async function atualizarMunicipioSelecionado() {
   }
 }
 
+async function consultarFinanciamentoFNS() {
+  const referencia = selectPeriodo.value;
+  const ano = referencia.match(/(\d{4})$/)?.[1];
+  if (!selectMunicipio.value || !ano) return;
+  const versao = ++sequenciaConsulta;
+  consultaEmCurso?.abort();
+  dadosFonte = null;
+  productionDashboard.hidden = true;
+  printButton.disabled = true;
+  mostrarStatus('Consultando dados do Fundo Nacional de Saúde…');
+  consultaEmCurso = new AbortController();
+  try {
+    const response = await fetch(`/api/fns?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${ano}`, { signal: consultaEmCurso.signal });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível consultar o FNS.');
+    if (versao !== sequenciaConsulta) return;
+    if (result.ibge !== selectMunicipio.value || result.tema !== 'financiamento') throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
+    dadosFonte = result;
+    mostrarStatus('');
+    renderizarFinanceiro();
+  } catch (error) {
+    if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
+    dadosFonte = null;
+    mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta do FNS. Tente novamente.' : error.message);
+    document.querySelector('#retry-source').hidden = false;
+  }
+}
+
 function preencherPeriodos(tipo) {
-  if (!selectMunicipio.value || !dadosFonte) return;
+  if (!selectMunicipio.value || (currentTopic !== 'Financiamento' && !dadosFonte)) return;
   const opcoes = obterOpcoes(tipo);
   selectPeriodo.innerHTML = '<option value="">Selecione a referência</option>';
   opcoes.forEach((opcao) => {
@@ -777,6 +839,14 @@ function preencherPeriodos(tipo) {
 
 selectMunicipio.addEventListener('change', atualizarMunicipioSelecionado);
 selectPeriodo.addEventListener('change', () => {
+  if (currentTopic === 'Financiamento') {
+    const referenciaSelecionada = Boolean(selectPeriodo.value);
+    emptyState.hidden = true;
+    productionDashboard.hidden = true;
+    printButton.disabled = true;
+    if (referenciaSelecionada) consultarFinanciamentoFNS();
+    return;
+  }
   if (!dadosFonte) return;
   const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
   const meses = (periodoSelecionado.dataset.meses || '').split(',').filter(Boolean);
@@ -788,7 +858,10 @@ selectPeriodo.addEventListener('change', () => {
   if (referenciaSelecionada && currentTopic === 'Produção') renderizarProducao(meses);
   if (referenciaSelecionada && ['Financiamento','Cofinanciamento'].includes(currentTopic)) { emptyState.hidden = true; renderizarFinanceiro(); }
 });
-document.querySelector('#retry-source').addEventListener('click', atualizarMunicipioSelecionado);
+document.querySelector('#retry-source').addEventListener('click', () => {
+  if (currentTopic === 'Financiamento' && selectPeriodo.value) consultarFinanciamentoFNS();
+  else atualizarMunicipioSelecionado();
+});
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
 
 topicButtons.forEach((button) => {
