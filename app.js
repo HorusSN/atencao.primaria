@@ -650,6 +650,20 @@ function renderizarFinanceiro() {
       if (!row.competenciaFiltro) return tipo === 'anual';
       return meses.includes(row.competenciaFiltro);
     });
+    const gruposResumo = [
+      { titulo: 'Gestão do SUS', corresponde: grupo => grupo.includes('gestao do sus') },
+      { titulo: 'Atenção Primária', corresponde: grupo => grupo.includes('atencao primaria') },
+      { titulo: 'Assistência Hospitalar e Ambulatorial', corresponde: grupo => grupo.includes('media e alta complexidade') || (grupo.includes('hospitalar') && grupo.includes('ambulatorial')) },
+      { titulo: 'Atenção Especializada', corresponde: grupo => grupo.includes('atencao especializada') },
+      { titulo: 'Assistência Farmacêutica', corresponde: grupo => grupo.includes('assistencia farmaceutica') },
+      { titulo: 'Vigilância em Saúde', corresponde: grupo => grupo.includes('vigilancia em saude') }
+    ];
+    const valorLiquidoTotal = pagamentos.reduce((total, row) => total + (Number.isFinite(row.valorLiquido) ? row.valorLiquido : 0), 0);
+    const resumo = gruposResumo.map(({ titulo, corresponde }) => {
+      const valor = pagamentos.reduce((total, row) => corresponde(normalizarIndicador(row.grupo)) ? total + (Number.isFinite(row.valorLiquido) ? row.valorLiquido : 0) : total, 0);
+      const percentual = valorLiquidoTotal ? (valor / valorLiquidoTotal) * 100 : 0;
+      return `<section class="fns-summary-card"><span>${escapar(titulo)}</span><strong>${moeda(valor)}</strong><small>${percentual.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}% do valor líquido total</small></section>`;
+    }).join('');
     const linhas = pagamentos.map(row => `<tr>
       <td><span class="fns-block fns-${row.bloco === 'Manutenção' ? 'maintenance' : 'structure'}">${escapar(row.bloco)}</span></td>
       <td>${escapar(row.grupo)}</td>
@@ -660,7 +674,10 @@ function renderizarFinanceiro() {
       <td class="fns-currency">${moeda(row.valorLiquido)}</td>
     </tr>`).join('');
     const entidade = dadosFonte.entidade?.razaoSocial || selectMunicipio.options[selectMunicipio.selectedIndex].text;
-    productionIndicators.innerHTML = `<article class="indicator-panel fns-panel">
+    productionIndicators.innerHTML = `<article class="indicator-panel fns-summary-panel">
+      <h3>Resumo dos recursos transferidos no período</h3>
+      <div class="fns-summary-grid">${resumo}</div>
+    </article><article class="indicator-panel fns-panel">
       <div class="fns-panel-heading"><div><h3>Transferências do Fundo Nacional de Saúde</h3><p>${escapar(entidade)}</p></div><strong>${pagamentos.length} registros</strong></div>
       <div class="source-table-wrap"><table class="source-table fns-table">
         <thead><tr><th scope="col">Bloco</th><th scope="col">Grupo</th><th scope="col">Ação Detalhada</th><th scope="col">Competência</th><th scope="col">Agência</th><th scope="col">Conta</th><th scope="col">Valor Líquido</th></tr></thead>
