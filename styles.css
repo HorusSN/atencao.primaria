@@ -436,6 +436,7 @@ select:focus {
   .ses-summary-card { min-height: 24mm; padding: 3mm; border-left-width: 1.2mm; border-radius: 3mm; }
   .ses-summary-card > span { font-size: 6.5pt; }
   .ses-summary-card > strong { margin-top: 1.5mm; font-size: 13pt; }
+  .ses-summary-card:first-child > strong { font-size: 9.5pt; letter-spacing: -0.025em; white-space: nowrap; }
   .ses-summary-card > small { margin-top: 1.5mm; font-size: 6.5pt; }
   .fns-table { width: 100%; min-width: 0; font-size: 6.6pt; table-layout: fixed; }
   .fns-table th, .fns-table td { padding: 1.6mm 1.2mm; overflow-wrap: anywhere; }
