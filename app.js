@@ -669,31 +669,80 @@ function ordemDataPagamento(valor) {
   return iso ? Number(`${iso[1]}${iso[2].padStart(2, '0')}${iso[3].padStart(2, '0')}`) : Number.MAX_SAFE_INTEGER;
 }
 
-function renderizarPagamentosSES() {
-  const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
-  const pagamentos = (dadosFonte?.dados?.pagamentos || [])
-    .filter(registro => meses.includes(registro.competenciaFiltro))
-    .map((registro, ordem) => ({ registro, ordem }))
-    .sort((a, b) => ordemDataPagamento(a.registro.dataPagamento) - ordemDataPagamento(b.registro.dataPagamento) || a.ordem - b.ordem)
-    .map(({ registro }) => registro);
-  const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
-  const linhas = pagamentos.map(registro => `<tr>
+function dataIsoPagamento(valor) {
+  const texto = String(valor || '').trim();
+  const brasileiro = texto.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})\b/);
+  if (brasileiro) return `${brasileiro[3]}-${brasileiro[2].padStart(2, '0')}-${brasileiro[1].padStart(2, '0')}`;
+  const iso = texto.match(/\b(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\b/);
+  return iso ? `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}` : '';
+}
+
+function ordenarResolucaoSES(a, b) {
+  const [numeroA, anoA] = String(a).split('/');
+  const [numeroB, anoB] = String(b).split('/');
+  const diferencaAno = Number(anoA || 0) - Number(anoB || 0);
+  return diferencaAno || Number(numeroA.replace(/\D/g, '')) - Number(numeroB.replace(/\D/g, '')) || String(a).localeCompare(String(b), 'pt-BR', { numeric: true });
+}
+
+let pagamentosSESPeriodo = [];
+
+function linhasPagamentosSES(pagamentos) {
+  return pagamentos.map(registro => `<tr>
     <td class="ses-date">${escapar(registro.dataPagamento || 'Não informada')}</td>
     <td class="ses-resolution">${escapar(registro.numeroResolucao || 'Não informada')}</td>
     <td>${escapar(registro.projetoAtividade || 'Não informado')}</td>
     <td class="ses-account">${escapar(registro.contaCorrente || 'Não informada')}</td>
     <td class="ses-currency">${formatarMoeda(registro.valorPago)}</td>
   </tr>`).join('');
+}
+
+function atualizarTabelaPagamentosSES() {
+  const conta = document.querySelector('#ses-conta-corrente')?.value || '';
+  const resolucao = document.querySelector('#ses-resolucao')?.value || '';
+  const dataInicial = document.querySelector('#ses-data-inicial')?.value || '';
+  const dataFinal = document.querySelector('#ses-data-final')?.value || '';
+  const filtrados = pagamentosSESPeriodo.filter(registro => {
+    const data = dataIsoPagamento(registro.dataPagamento);
+    return (!conta || registro.contaCorrente === conta)
+      && (!resolucao || registro.numeroResolucao === resolucao)
+      && (!dataInicial || (data && data >= dataInicial))
+      && (!dataFinal || (data && data <= dataFinal));
+  });
+  const corpo = document.querySelector('#ses-payment-rows');
+  const quantidade = document.querySelector('#ses-payment-count');
+  if (corpo) corpo.innerHTML = linhasPagamentosSES(filtrados) || '<tr><td colspan="5" class="ses-empty">Não há pagamentos para os filtros selecionados.</td></tr>';
+  if (quantidade) quantidade.textContent = `${filtrados.length} ${filtrados.length === 1 ? 'registro' : 'registros'}`;
+  printButton.disabled = filtrados.length === 0;
+}
+
+function renderizarPagamentosSES() {
+  const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
+  pagamentosSESPeriodo = (dadosFonte?.dados?.pagamentos || [])
+    .filter(registro => meses.includes(registro.competenciaFiltro))
+    .map((registro, ordem) => ({ registro, ordem }))
+    .sort((a, b) => ordemDataPagamento(a.registro.dataPagamento) - ordemDataPagamento(b.registro.dataPagamento) || a.ordem - b.ordem)
+    .map(({ registro }) => registro);
+  const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
+  const contas = [...new Set(pagamentosSESPeriodo.map(registro => registro.contaCorrente).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+  const resolucoes = [...new Set(pagamentosSESPeriodo.map(registro => registro.numeroResolucao).filter(Boolean))].sort(ordenarResolucaoSES);
+  const datas = pagamentosSESPeriodo.map(registro => dataIsoPagamento(registro.dataPagamento)).filter(Boolean).sort();
   productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
-    <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong>${pagamentos.length} registros</strong></div>
+    <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong id="ses-payment-count">${pagamentosSESPeriodo.length} ${pagamentosSESPeriodo.length === 1 ? 'registro' : 'registros'}</strong></div>
+    <div class="ses-filters" aria-label="Filtros dos pagamentos consultados">
+      <label for="ses-conta-corrente">Conta Corrente<select id="ses-conta-corrente"><option value="">Todas as contas</option>${contas.map(conta => `<option value="${escapar(conta)}">${escapar(conta)}</option>`).join('')}</select></label>
+      <label for="ses-resolucao">Nº da Resolução<select id="ses-resolucao"><option value="">Todas as resoluções</option>${resolucoes.map(resolucao => `<option value="${escapar(resolucao)}">${escapar(resolucao)}</option>`).join('')}</select></label>
+      <label for="ses-data-inicial">Data inicial<input id="ses-data-inicial" type="date" min="${datas[0] || ''}" max="${datas.at(-1) || ''}"></label>
+      <label for="ses-data-final">Data final<input id="ses-data-final" type="date" min="${datas[0] || ''}" max="${datas.at(-1) || ''}"></label>
+    </div>
     <div class="source-table-wrap"><table class="source-table ses-table">
       <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Projeto/Atividade</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
-      <tbody>${linhas || '<tr><td colspan="5" class="ses-empty">Não há pagamentos no período selecionado.</td></tr>'}</tbody>
+      <tbody id="ses-payment-rows">${linhasPagamentosSES(pagamentosSESPeriodo) || '<tr><td colspan="5" class="ses-empty">Não há pagamentos no período selecionado.</td></tr>'}</tbody>
     </table></div>
     <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
   </article>`;
+  document.querySelectorAll('#ses-conta-corrente, #ses-resolucao, #ses-data-inicial, #ses-data-final').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
   productionDashboard.hidden = false;
-  printButton.disabled = pagamentos.length === 0;
+  printButton.disabled = pagamentosSESPeriodo.length === 0;
 }
 
 function renderizarFinanceiro() {
