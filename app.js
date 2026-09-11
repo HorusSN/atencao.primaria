@@ -9,6 +9,12 @@ const emptyState = document.querySelector('.empty-state');
 const productionDashboard = document.querySelector('#production-dashboard');
 const productionIndicators = document.querySelector('#production-indicators');
 const printButton = document.querySelector('#imprimir');
+const resolutionsFilter = document.querySelector('#resolutions-filter');
+const resolutionYear = document.querySelector('#resolution-year');
+const resolutionMonth = document.querySelector('#resolution-month');
+const resolutionCategory = document.querySelector('#resolution-category');
+const resolutionSearch = document.querySelector('#resolution-search');
+const resolutionSubmit = document.querySelector('#resolution-submit');
 let currentTopic = '';
 const temasComReferenciaLivre = new Set(['Financiamento']);
 
@@ -19,6 +25,110 @@ let competenciasDisponiveis = [];
 const escapar = (valor) => String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ordenarCompetencias = (meses) => [...new Set(meses)].sort((a, b) => (a.slice(3) + a.slice(0, 2)).localeCompare(b.slice(3) + b.slice(0, 2)));
 let coberturaAtual = null;
+let metadadosResolucoesCarregados = false;
+
+function preencherFiltroResolucao(select, placeholder, opcoes) {
+  select.innerHTML = '';
+  const vazio = document.createElement('option');
+  vazio.value = '';
+  vazio.textContent = placeholder;
+  select.appendChild(vazio);
+  (opcoes || []).forEach(({ value, label }) => {
+    if (!value || !label) return;
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+  select.disabled = false;
+}
+
+function limparResultadosResolucoes() {
+  productionIndicators.innerHTML = '';
+  productionDashboard.hidden = true;
+  printButton.disabled = true;
+}
+
+async function carregarMetadadosResolucoes() {
+  if (metadadosResolucoesCarregados) return;
+  resolutionYear.disabled = true;
+  resolutionMonth.disabled = true;
+  resolutionCategory.disabled = true;
+  resolutionSubmit.disabled = true;
+  mostrarStatus('Preparando filtros da consulta de Resoluções SES/MG…');
+  try {
+    const response = await fetch('/api/resolucoes-ses?meta=1');
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível carregar os filtros das Resoluções SES/MG.');
+    if (currentTopic !== 'Resoluções SES/MG') return;
+    preencherFiltroResolucao(resolutionYear, 'Todos os anos', result.dados?.anos);
+    preencherFiltroResolucao(resolutionMonth, 'Todos os meses', result.dados?.meses);
+    preencherFiltroResolucao(resolutionCategory, 'Todas as categorias', result.dados?.categorias);
+    metadadosResolucoesCarregados = true;
+    resolutionSubmit.disabled = false;
+    mostrarStatus('');
+  } catch (error) {
+    if (currentTopic !== 'Resoluções SES/MG') return;
+    mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar os filtros das Resoluções SES/MG.' : error.message);
+  }
+}
+
+function renderizarResolucoesSES(documentos) {
+  const quantidade = documentos.length;
+  productionIndicators.innerHTML = `<article class="indicator-panel resolutions-panel">
+    <div class="resolutions-panel-heading">
+      <div><h3>Resoluções e Deliberações da SES/MG</h3><p>${quantidade} ${quantidade === 1 ? 'documento encontrado' : 'documentos encontrados'}</p></div>
+    </div>
+    <div class="resolution-list">${documentos.map(documento => `<article class="resolution-card">
+      <a href="${escapar(documento.attachment)}" target="_blank" rel="noopener noreferrer">${escapar(documento.title)}</a>
+      <p>${escapar(documento.description)}</p>
+    </article>`).join('')}</div>
+  </article>`;
+  productionDashboard.hidden = false;
+}
+
+async function consultarResolucoesSES() {
+  const filtros = new URLSearchParams();
+  if (resolutionYear.value) filtros.set('ano', resolutionYear.value);
+  if (resolutionMonth.value) filtros.set('mes', resolutionMonth.value);
+  if (resolutionCategory.value) filtros.set('categoria', resolutionCategory.value);
+  if (resolutionSearch.value.trim()) filtros.set('q', resolutionSearch.value.trim());
+  if (![...filtros.keys()].length) {
+    mostrarStatus('Selecione ao menos um filtro ou informe um número ou termo para pesquisar.');
+    limparResultadosResolucoes();
+    return;
+  }
+  resolutionSubmit.disabled = true;
+  limparResultadosResolucoes();
+  mostrarStatus('Consultando documentos oficiais da SES/MG…');
+  try {
+    const response = await fetch(`/api/resolucoes-ses?${filtros.toString()}`);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível consultar os documentos da SES/MG neste momento.');
+    if (currentTopic !== 'Resoluções SES/MG') return;
+    const documentos = Array.isArray(result.dados?.documentos) ? result.dados.documentos : [];
+    if (!documentos.length) {
+      mostrarStatus('Nenhum documento foi encontrado para os filtros informados.');
+      return;
+    }
+    mostrarStatus('');
+    renderizarResolucoesSES(documentos);
+  } catch (error) {
+    if (currentTopic !== 'Resoluções SES/MG') return;
+    mostrarStatus(error instanceof SyntaxError ? 'Não foi possível consultar os documentos da SES/MG neste momento.' : error.message);
+  } finally {
+    if (currentTopic === 'Resoluções SES/MG' && metadadosResolucoesCarregados) resolutionSubmit.disabled = false;
+  }
+}
+
+function limparFiltrosResolucoes() {
+  resolutionYear.value = '';
+  resolutionMonth.value = '';
+  resolutionCategory.value = '';
+  resolutionSearch.value = '';
+  mostrarStatus('');
+  limparResultadosResolucoes();
+}
 
 function obterCoberturaMaisRecente(municipio) {
   return dadosFonte?.ibge === municipio && dadosFonte.tema === 'cobertura' ? dadosFonte.dados : null;
@@ -1093,6 +1203,11 @@ periodTypeInputs.forEach((input) => input.addEventListener('change', () => preen
 document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => campo.addEventListener('change', () => {
   if (currentTopic === 'Pagamentos SES' && selectMunicipio.value) consultarPagamentosSES();
 }));
+resolutionSubmit.addEventListener('click', consultarResolucoesSES);
+document.querySelector('#resolution-clear').addEventListener('click', limparFiltrosResolucoes);
+resolutionSearch.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') consultarResolucoesSES();
+});
 
 topicButtons.forEach((button) => {
   button.addEventListener('click', () => {
@@ -1107,7 +1222,11 @@ topicButtons.forEach((button) => {
     periodTypeInputs.forEach(input => { input.closest('label').hidden = false; });
     const cobertura = currentTopic === 'Cobertura da APS';
     const pagamentosSES = currentTopic === 'Pagamentos SES';
+    const resolucoesSES = currentTopic === 'Resoluções SES/MG';
     detail.classList.toggle('coverage-mode', cobertura);
+    detail.classList.toggle('resolutions-mode', resolucoesSES);
+    document.querySelector('.filter-layout').hidden = resolucoesSES;
+    resolutionsFilter.hidden = !resolucoesSES;
     document.querySelector('.period-types').hidden = cobertura || pagamentosSES;
     document.querySelector('#ses-date-range').hidden = !pagamentosSES;
     document.querySelector('.period-value > label').hidden = cobertura || pagamentosSES;
@@ -1122,11 +1241,18 @@ topicButtons.forEach((button) => {
         ? 'Repasses do Fundo Nacional de Saúde (FNS)'
         : currentTopic === 'Pagamentos SES'
           ? 'Pagamentos SES'
+          : currentTopic === 'Resoluções SES/MG'
+            ? 'Resoluções SES/MG'
           : button.dataset.topic;
     selectMunicipio.value = '';
-    atualizarMunicipioSelecionado();
     topics.hidden = true;
     detail.hidden = false;
+    if (resolucoesSES) {
+      limparFiltrosResolucoes();
+      carregarMetadadosResolucoes();
+    } else {
+      atualizarMunicipioSelecionado();
+    }
     window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
   });
 });
@@ -1148,7 +1274,7 @@ window.addEventListener('beforeprint', () => {
   if (!productionDashboard.hidden) atualizarCabecalhoRelatorio();
 });
 
-document.querySelector('#voltar').addEventListener('click', () => {
+function voltarParaInicio() {
   ++sequenciaConsulta;
   consultaEmCurso?.abort();
   dadosFonte = null;
@@ -1158,5 +1284,11 @@ document.querySelector('#voltar').addEventListener('click', () => {
   currentTopic = '';
   atualizarOpcoesMunicipio();
   periodFilter.classList.remove('ses-date-mode');
+  detail.classList.remove('coverage-mode', 'resolutions-mode');
+  document.querySelector('.filter-layout').hidden = false;
+  resolutionsFilter.hidden = true;
   window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
-});
+}
+
+document.querySelector('#voltar').addEventListener('click', voltarParaInicio);
+document.querySelector('#resolution-back').addEventListener('click', voltarParaInicio);
