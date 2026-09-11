@@ -11,7 +11,7 @@ test('busca numérica consulta as variantes com e sem separador de milhar', () =
 });
 
 test('parser preserva descrição completa, converte anexo relativo e elimina duplicidades', () => {
-  const html = `<article><a href="/resolucoes/11005">RESOLUÇÃO SES/MG Nº 11.005</a><p class="description">Define a política estadual de assistência farmacêutica em todos os seus termos.</p><a href="/files/11005.pdf">Arquivo</a></article>`;
+  const html = `<article><a href="/component/topdf/?url=abc">PDF - https://portal-antigo.saude.mg.gov.br/index.php?option=com_gmg&amp;controller=document&amp;id=28577</a><p>Resoluções</p><a href="/resolucoes/11005">RESOLUÇÃO SES/MG Nº 11.005</a><p class="description">Define a política estadual<br>de assistência farmacêutica em todos os seus termos.</p><a href="/files/11005.pdf">Arquivo</a></article>`;
   const documentos = resolucoes._private.extrairDocumentos(html, 'https://portal-antigo.saude.mg.gov.br/resolucoes/documents?q=11005');
   assert.equal(documentos.length, 1);
   assert.equal(documentos[0].attachment, 'https://portal-antigo.saude.mg.gov.br/files/11005.pdf');
