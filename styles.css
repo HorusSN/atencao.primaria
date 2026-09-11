@@ -390,6 +390,7 @@ select:focus {
   .ses-panel { break-inside: auto; page-break-inside: auto; }
   .ses-table { width: 100%; min-width: 0; font-size: 6.6pt; table-layout: fixed; }
   .ses-table th, .ses-table td { padding: 1.6mm 1.2mm; overflow-wrap: anywhere; }
+  .ses-table th { font-size: 5.1pt; }
   .ses-panel-heading > strong { font-size: 7pt; }
 }
 
