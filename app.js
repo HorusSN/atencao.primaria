@@ -188,6 +188,13 @@ function atualizarOpcoesMunicipio() {
   });
 }
 
+function atualizarTiposPeriodoVisiveis() {
+  const todos = periodTypeInputs.find(input => input.value === 'todos');
+  const exibirTodos = currentTopic === 'Pagamentos SES';
+  if (todos) todos.closest('label').hidden = !exibirTodos;
+  document.querySelector('.period-options').classList.toggle('has-all-period', exibirTodos);
+}
+
 const formatarNumero = (valor) => valor == null || !Number.isFinite(valor) ? 'Não disponível' : new Intl.NumberFormat('pt-BR').format(valor);
 
 function formatarPeriodoRelatorio() {
@@ -199,6 +206,8 @@ function formatarPeriodoRelatorio() {
   ];
 
   if (tipoPeriodo === 'anual') return `Ano de ${valor}`;
+
+  if (tipoPeriodo === 'todos') return `Todos os pagamentos de ${valor}`;
 
   if (tipoPeriodo === 'quadrimestral') {
     const [quadrimestre, ano] = valor.split('-');
@@ -474,7 +483,7 @@ function obterOpcoesFNS(tipo) {
   const mesAtual = agora.getMonth() + 1;
   const anos = Array.from({ length: anoAtual - PRIMEIRO_EXERCICIO_FNS + 1 }, (_, indice) => anoAtual - indice);
 
-  if (tipo === 'anual') return anos.map(ano => ({ value: String(ano), label: String(ano), meses: mesesDoExercicio(ano) }));
+  if (tipo === 'anual' || tipo === 'todos') return anos.map(ano => ({ value: String(ano), label: String(ano), meses: mesesDoExercicio(ano) }));
 
   if (tipo === 'quadrimestral') {
     return anos.flatMap(ano => {
@@ -717,11 +726,22 @@ function atualizarTabelaPagamentosSES() {
 
 function renderizarPagamentosSES() {
   const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
+  const chavesDuplicadas = new Set();
   pagamentosSESPeriodo = (dadosFonte?.dados?.pagamentos || [])
     .filter(registro => meses.includes(registro.competenciaFiltro))
     .map((registro, ordem) => ({ registro, ordem }))
     .sort((a, b) => ordemDataPagamento(a.registro.dataPagamento) - ordemDataPagamento(b.registro.dataPagamento) || a.ordem - b.ordem)
-    .map(({ registro }) => registro);
+    .map(({ registro }) => registro)
+    .filter(registro => {
+      const data = dataIsoPagamento(registro.dataPagamento);
+      const valor = Number.isFinite(registro.valorPago) ? registro.valorPago.toFixed(2) : '';
+      const empenho = String(registro.numeroEmpenho || '').replace(/\s+/g, '').toUpperCase();
+      if (!data || !valor || !empenho) return true;
+      const chave = `${data}\u0000${valor}\u0000${empenho}`;
+      if (chavesDuplicadas.has(chave)) return false;
+      chavesDuplicadas.add(chave);
+      return true;
+    });
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const contas = [...new Set(pagamentosSESPeriodo.map(registro => registro.contaCorrente).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   const resolucoes = [...new Set(pagamentosSESPeriodo.map(registro => registro.numeroResolucao).filter(Boolean))].sort(ordenarResolucaoSES);
@@ -881,7 +901,11 @@ async function atualizarMunicipioSelecionado() {
   mostrarStatus('');
   if (!municipioSelecionado) return;
   if (temasComReferenciaLivre.has(currentTopic)) {
-    periodTypeInputs.forEach(input => { input.disabled = false; input.closest('label').hidden = false; });
+    periodTypeInputs.forEach(input => {
+      const disponivel = input.value !== 'todos' || currentTopic === 'Pagamentos SES';
+      input.disabled = !disponivel;
+      input.closest('label').hidden = !disponivel;
+    });
     return;
   }
   mostrarStatus('Consultando dados do Painel CONASEMS…');
@@ -904,6 +928,11 @@ async function atualizarMunicipioSelecionado() {
     if (!rows.length) { mostrarStatus('O CONASEMS não disponibilizou registros para este município e tema.'); return; }
     competenciasDisponiveis = ordenarCompetencias(rows.map(row => row.competencia).filter(Boolean));
     periodTypeInputs.forEach(input => {
+      if (input.value === 'todos') {
+        input.disabled = true;
+        input.closest('label').hidden = true;
+        return;
+      }
       input.disabled = tema === 'cofinanciamento' && input.value === 'mensal';
       input.closest('label').hidden = tema === 'cofinanciamento' && input.value === 'mensal';
     });
@@ -1034,7 +1063,10 @@ topicButtons.forEach((button) => {
     button.classList.add('active');
     currentTopic = button.dataset.topic;
     atualizarOpcoesMunicipio();
-    periodTypeInputs.forEach(input => { input.closest('label').hidden = false; });
+    atualizarTiposPeriodoVisiveis();
+    periodTypeInputs.forEach(input => {
+      if (input.value !== 'todos') input.closest('label').hidden = false;
+    });
     const cobertura = currentTopic === 'Cobertura da APS';
     detail.classList.toggle('coverage-mode', cobertura);
     document.querySelector('.period-types').hidden = cobertura;
@@ -1083,5 +1115,6 @@ document.querySelector('#voltar').addEventListener('click', () => {
   topicButtons.forEach((button) => button.classList.remove('active'));
   currentTopic = '';
   atualizarOpcoesMunicipio();
+  atualizarTiposPeriodoVisiveis();
   window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
 });
