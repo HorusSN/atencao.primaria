@@ -317,7 +317,7 @@ select:focus {
 .ses-panel-heading h3 { margin: 0; color: #214772; }
 .ses-panel-heading p { margin: 6px 0 0; color: #53657C; font-size: 0.82rem; }
 .ses-panel-heading > strong { flex: 0 0 auto; padding: 8px 11px; border-radius: 999px; background: #E6F8F5; color: #078F7C; font-size: 0.76rem; }
-.ses-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; padding: 16px; border: 1px solid #CBE9E3; border-radius: 10px; background: #FFFFFF; }
+.ses-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 18px; padding: 16px; border: 1px solid #CBE9E3; border-radius: 10px; background: #FFFFFF; }
 .ses-filters label { display: grid; gap: 7px; color: #214772; font-size: 0.76rem; font-weight: 800; }
 .ses-filters select, .ses-filters input { width: 100%; min-width: 0; height: 42px; padding: 0 11px; border: 1px solid #BDE7E0; border-radius: 7px; background: #F9FDFC; color: #294159; font: inherit; font-weight: 600; outline: none; }
 .ses-filters select:focus, .ses-filters input:focus { border-color: #14c4ab; box-shadow: 0 0 0 3px rgba(20, 196, 171, 0.15); }
