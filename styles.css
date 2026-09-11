@@ -394,7 +394,7 @@ select:focus {
 .resolution-card { padding: 20px 22px; border: 1px solid #D6E3F3; border-left: 5px solid #1A73E9; border-radius: 10px; background: var(--white); box-shadow: 0 6px 18px rgba(14, 27, 43, 0.04); }
 .resolution-card > a { color: #214772; font-size: 1rem; font-weight: 800; line-height: 1.4; text-decoration: none; }
 .resolution-card > a:hover, .resolution-card > a:focus-visible { color: #1A73E9; text-decoration: underline; }
-.resolution-card > p { margin: 14px 0 0; color: #425A73; font-size: 0.9rem; line-height: 1.65; white-space: pre-line; }
+.resolution-card > p { margin: 14px 0 0; color: #425A73; font-size: 0.9rem; line-height: 1.65; white-space: normal; }
 .cofinance-panel { border-top: 4px solid #1A73E9; background: #F7FAFE; }
 .cofinance-panel > h3 { color: #214772; }
 .cofinance-table { border: 1px solid #D6E3F3; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; background: #FFFFFF; }
