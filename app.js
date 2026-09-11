@@ -10,6 +10,7 @@ const productionDashboard = document.querySelector('#production-dashboard');
 const productionIndicators = document.querySelector('#production-indicators');
 const printButton = document.querySelector('#imprimir');
 let currentTopic = '';
+const temasComReferenciaLivre = new Set(['Financiamento', 'Pagamentos SES']);
 
 let dadosFonte = null;
 let consultaEmCurso = null;
@@ -208,6 +209,8 @@ function atualizarCabecalhoRelatorio() {
   const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : formatarPeriodoRelatorio();
   document.querySelector('.print-identification h1').textContent = currentTopic === 'Financiamento'
     ? 'Repasses do Fundo Nacional de Saúde (FNS)'
+    : currentTopic === 'Pagamentos SES'
+      ? 'Relatório de Pagamentos SES'
     : `Relatório de ${currentTopic === 'Cobertura da APS' ? 'Cobertura' : currentTopic} da Atenção Primária`;
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
@@ -483,7 +486,7 @@ function obterOpcoesFNS(tipo) {
 }
 
 function obterOpcoes(tipo) {
-  if (currentTopic === 'Financiamento') return obterOpcoesFNS(tipo);
+  if (temasComReferenciaLivre.has(currentTopic)) return obterOpcoesFNS(tipo);
   if (currentTopic === 'Cofinanciamento') {
     const quadrimestres = [...new Set(dadosFonte.dados.map(row => row.quadrimestre))].sort().reverse();
     if (tipo === 'mensal') return [];
@@ -769,6 +772,7 @@ async function atualizarMunicipioSelecionado() {
     : '<option value="">Selecione primeiro o município</option>';
   selectPeriodo.disabled = true;
   emptyState.hidden = true;
+  emptyState.textContent = 'Área preparada para inclusão dos indicadores.';
   emptyState.dataset.competencias = '';
   productionDashboard.hidden = true;
   printButton.disabled = true;
@@ -776,7 +780,7 @@ async function atualizarMunicipioSelecionado() {
   document.querySelector('#retry-source').hidden = true;
   mostrarStatus('');
   if (!municipioSelecionado) return;
-  if (currentTopic === 'Financiamento') {
+  if (temasComReferenciaLivre.has(currentTopic)) {
     periodTypeInputs.forEach(input => { input.disabled = false; input.closest('label').hidden = false; });
     return;
   }
@@ -840,7 +844,7 @@ async function consultarFinanciamentoFNS() {
 }
 
 function preencherPeriodos(tipo) {
-  if (!selectMunicipio.value || (currentTopic !== 'Financiamento' && !dadosFonte)) return;
+  if (!selectMunicipio.value || (!temasComReferenciaLivre.has(currentTopic) && !dadosFonte)) return;
   const opcoes = obterOpcoes(tipo);
   selectPeriodo.innerHTML = '<option value="">Selecione a referência</option>';
   opcoes.forEach((opcao) => {
@@ -864,6 +868,14 @@ selectPeriodo.addEventListener('change', () => {
     productionDashboard.hidden = true;
     printButton.disabled = true;
     if (referenciaSelecionada) consultarFinanciamentoFNS();
+    return;
+  }
+  if (currentTopic === 'Pagamentos SES') {
+    const referenciaSelecionada = Boolean(selectPeriodo.value);
+    productionDashboard.hidden = true;
+    printButton.disabled = true;
+    emptyState.textContent = 'Os indicadores de Pagamentos SES serão apresentados nesta área para a referência selecionada.';
+    emptyState.hidden = !referenciaSelecionada;
     return;
   }
   if (!dadosFonte) return;
@@ -904,7 +916,9 @@ topicButtons.forEach((button) => {
       ? 'Produção da Atenção Primária'
       : currentTopic === 'Financiamento'
         ? 'Repasses do Fundo Nacional de Saúde (FNS)'
-        : button.dataset.topic;
+        : currentTopic === 'Pagamentos SES'
+          ? 'Pagamentos SES'
+          : button.dataset.topic;
     selectMunicipio.value = '';
     atualizarMunicipioSelecionado();
     topics.hidden = true;
