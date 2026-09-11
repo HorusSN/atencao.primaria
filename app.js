@@ -178,6 +178,16 @@ const municipioUf = {
   '316870': 'MG'
 };
 
+function atualizarOpcoesMunicipio() {
+  const apenasMinasGerais = currentTopic === 'Pagamentos SES';
+  [...selectMunicipio.options].forEach((option) => {
+    if (!option.value) return;
+    const disponivel = !apenasMinasGerais || municipioUf[option.value] === 'MG';
+    option.hidden = !disponivel;
+    option.disabled = !disponivel;
+  });
+}
+
 const formatarNumero = (valor) => valor == null || !Number.isFinite(valor) ? 'Não disponível' : new Intl.NumberFormat('pt-BR').format(valor);
 
 function formatarPeriodoRelatorio() {
@@ -645,6 +655,35 @@ function renderizarResumoAps(registros) {
   </section>`;
 }
 
+function formatarMoeda(valor) {
+  return Number.isFinite(valor)
+    ? valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    : 'Não informado';
+}
+
+function renderizarPagamentosSES() {
+  const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
+  const pagamentos = (dadosFonte?.dados?.pagamentos || []).filter(registro => meses.includes(registro.competenciaFiltro));
+  const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
+  const linhas = pagamentos.map(registro => `<tr>
+    <td class="ses-date">${escapar(registro.dataPagamento || 'Não informada')}</td>
+    <td class="ses-resolution">${escapar(registro.numeroResolucao || 'Não informada')}</td>
+    <td>${escapar(registro.acoes || 'Não informadas')}</td>
+    <td class="ses-account">${escapar(registro.contaCorrente || 'Não informada')}</td>
+    <td class="ses-currency">${formatarMoeda(registro.valorPago)}</td>
+  </tr>`).join('');
+  productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
+    <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong>${pagamentos.length} registros</strong></div>
+    <div class="source-table-wrap"><table class="source-table ses-table">
+      <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Ações</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
+      <tbody>${linhas || '<tr><td colspan="5" class="ses-empty">Não há pagamentos no período selecionado.</td></tr>'}</tbody>
+    </table></div>
+    <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
+  </article>`;
+  productionDashboard.hidden = false;
+  printButton.disabled = pagamentos.length === 0;
+}
+
 function renderizarFinanceiro() {
   const tipo = document.querySelector('input[name="periodo-tipo"]:checked').value;
   const ref = selectPeriodo.value;
@@ -843,6 +882,34 @@ async function consultarFinanciamentoFNS() {
   }
 }
 
+async function consultarPagamentosSES() {
+  const referencia = selectPeriodo.value;
+  const ano = referencia.match(/(\d{4})$/)?.[1];
+  if (!selectMunicipio.value || !ano) return;
+  const versao = ++sequenciaConsulta;
+  consultaEmCurso?.abort();
+  dadosFonte = null;
+  productionDashboard.hidden = true;
+  printButton.disabled = true;
+  mostrarStatus('Consultando pagamentos da SES/MG…');
+  consultaEmCurso = new AbortController();
+  try {
+    const response = await fetch(`/api/ses?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${ano}`, { signal: consultaEmCurso.signal });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Não foi possível consultar a SES/MG.');
+    if (versao !== sequenciaConsulta) return;
+    if (result.ibge !== selectMunicipio.value || result.tema !== 'pagamentos-ses') throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
+    dadosFonte = result;
+    mostrarStatus('');
+    renderizarPagamentosSES();
+  } catch (error) {
+    if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
+    dadosFonte = null;
+    mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta da SES/MG. Tente novamente.' : error.message);
+    document.querySelector('#retry-source').hidden = false;
+  }
+}
+
 function preencherPeriodos(tipo) {
   if (!selectMunicipio.value || (!temasComReferenciaLivre.has(currentTopic) && !dadosFonte)) return;
   const opcoes = obterOpcoes(tipo);
@@ -872,10 +939,10 @@ selectPeriodo.addEventListener('change', () => {
   }
   if (currentTopic === 'Pagamentos SES') {
     const referenciaSelecionada = Boolean(selectPeriodo.value);
+    emptyState.hidden = true;
     productionDashboard.hidden = true;
     printButton.disabled = true;
-    emptyState.textContent = 'Os indicadores de Pagamentos SES serão apresentados nesta área para a referência selecionada.';
-    emptyState.hidden = !referenciaSelecionada;
+    if (referenciaSelecionada) consultarPagamentosSES();
     return;
   }
   if (!dadosFonte) return;
@@ -891,6 +958,7 @@ selectPeriodo.addEventListener('change', () => {
 });
 document.querySelector('#retry-source').addEventListener('click', () => {
   if (currentTopic === 'Financiamento' && selectPeriodo.value) consultarFinanciamentoFNS();
+  else if (currentTopic === 'Pagamentos SES' && selectPeriodo.value) consultarPagamentosSES();
   else atualizarMunicipioSelecionado();
 });
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
@@ -904,6 +972,7 @@ topicButtons.forEach((button) => {
     topicButtons.forEach((item) => item.classList.remove('active'));
     button.classList.add('active');
     currentTopic = button.dataset.topic;
+    atualizarOpcoesMunicipio();
     periodTypeInputs.forEach(input => { input.closest('label').hidden = false; });
     const cobertura = currentTopic === 'Cobertura da APS';
     detail.classList.toggle('coverage-mode', cobertura);
@@ -952,5 +1021,6 @@ document.querySelector('#voltar').addEventListener('click', () => {
   topics.hidden = false;
   topicButtons.forEach((button) => button.classList.remove('active'));
   currentTopic = '';
+  atualizarOpcoesMunicipio();
   window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
 });
