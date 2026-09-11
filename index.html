@@ -23,6 +23,7 @@
       <button data-topic="Orçamento" data-external-url="https://portal-horus2-c7iq.vercel.app/">Orçamento</button>
       <button data-topic="Financiamento">Financiamento</button>
       <button data-topic="Pagamentos SES">Pagamentos SES</button>
+      <button data-topic="Resoluções SES/MG">Resoluções SES/MG</button>
       <button data-topic="Cofinanciamento">Cofinanciamento</button>
       <button data-topic="Produção">Produção</button>
     </section>
@@ -79,6 +80,25 @@
         </section>
 
       </div>
+      <section class="resolutions-filter" id="resolutions-filter" aria-label="Filtros de consulta de resoluções da SES/MG" hidden>
+        <label for="resolution-year">Ano
+          <div class="select-wrap"><select id="resolution-year" disabled><option value="">Todos os anos</option></select></div>
+        </label>
+        <label for="resolution-month">Mês
+          <div class="select-wrap"><select id="resolution-month" disabled><option value="">Todos os meses</option></select></div>
+        </label>
+        <label for="resolution-category">Categoria
+          <div class="select-wrap"><select id="resolution-category" disabled><option value="">Todas as categorias</option></select></div>
+        </label>
+        <label class="resolution-search" for="resolution-search">Número do documento ou termo de pesquisa
+          <input id="resolution-search" type="search" placeholder="Ex.: 11.005 ou assistência farmacêutica" autocomplete="off">
+        </label>
+        <div class="resolution-actions">
+          <button class="resolution-submit" id="resolution-submit" type="button" disabled>Pesquisar</button>
+          <button class="resolution-clear" id="resolution-clear" type="button">Limpar filtros</button>
+          <button class="back" id="resolution-back" type="button">Voltar</button>
+        </div>
+      </section>
       <header class="print-report-header" aria-hidden="true">
         <div class="print-brand">
           <strong>HÓRUS SERVIÇOS &amp; NEGÓCIOS</strong>
