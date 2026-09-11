@@ -728,10 +728,12 @@ function linhasPagamentosSES(pagamentos) {
 }
 
 function atualizarTabelaPagamentosSES() {
+  const origem = document.querySelector('#ses-origem')?.value || 'todos';
   const conta = document.querySelector('#ses-conta-corrente')?.value || '';
   const resolucao = document.querySelector('#ses-resolucao')?.value || '';
   const filtrados = pagamentosSESPeriodo.filter(registro => {
-    return (!conta || registro.contaCorrente === conta)
+    return (origem === 'todos' || registro.origem === origem)
+      && (!conta || registro.contaCorrente === conta)
       && (!resolucao || registro.numeroResolucao === resolucao);
   });
   const corpo = document.querySelector('#ses-payment-rows');
@@ -766,8 +768,9 @@ function renderizarPagamentosSES() {
   const contas = [...new Set(pagamentosSESPeriodo.map(registro => registro.contaCorrente).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   const resolucoes = [...new Set(pagamentosSESPeriodo.map(registro => registro.numeroResolucao).filter(Boolean))].sort(ordenarResolucaoSES);
   productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
-    <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong id="ses-payment-count">${pagamentosSESPeriodo.length} ${pagamentosSESPeriodo.length === 1 ? 'registro' : 'registros'}</strong></div>
+    <div class="ses-panel-heading"><div><h3>Pagamentos da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong id="ses-payment-count">${pagamentosSESPeriodo.length} ${pagamentosSESPeriodo.length === 1 ? 'registro' : 'registros'}</strong></div>
     <div class="ses-filters" aria-label="Filtros dos pagamentos consultados">
+      <label for="ses-origem">Tipo de pagamento<select id="ses-origem"><option value="todos" selected>Todos</option><option value="ordinarios">Ordinários</option><option value="restos-a-pagar">Restos a pagar</option></select></label>
       <label for="ses-conta-corrente">Conta Corrente<select id="ses-conta-corrente"><option value="">Todas as contas</option>${contas.map(conta => `<option value="${escapar(conta)}">${escapar(conta)}</option>`).join('')}</select></label>
       <label for="ses-resolucao">Nº da Resolução<select id="ses-resolucao"><option value="">Todas as resoluções</option>${resolucoes.map(resolucao => `<option value="${escapar(resolucao)}">${escapar(resolucao)}</option>`).join('')}</select></label>
     </div>
@@ -777,7 +780,7 @@ function renderizarPagamentosSES() {
     </table></div>
     <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
   </article>`;
-  document.querySelectorAll('#ses-conta-corrente, #ses-resolucao').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
+  document.querySelectorAll('#ses-origem, #ses-conta-corrente, #ses-resolucao').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
   productionDashboard.hidden = false;
   printButton.disabled = pagamentosSESPeriodo.length === 0;
 }
