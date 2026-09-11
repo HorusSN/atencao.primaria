@@ -10,7 +10,7 @@ const productionDashboard = document.querySelector('#production-dashboard');
 const productionIndicators = document.querySelector('#production-indicators');
 const printButton = document.querySelector('#imprimir');
 let currentTopic = '';
-const temasComReferenciaLivre = new Set(['Financiamento', 'Pagamentos SES']);
+const temasComReferenciaLivre = new Set(['Financiamento']);
 
 let dadosFonte = null;
 let consultaEmCurso = null;
@@ -188,16 +188,40 @@ function atualizarOpcoesMunicipio() {
   });
 }
 
-function atualizarTiposPeriodoVisiveis() {
-  const todos = periodTypeInputs.find(input => input.value === 'todos');
-  const exibirTodos = currentTopic === 'Pagamentos SES';
-  if (todos) todos.closest('label').hidden = !exibirTodos;
-  document.querySelector('.period-options').classList.toggle('has-all-period', exibirTodos);
-}
-
 const formatarNumero = (valor) => valor == null || !Number.isFinite(valor) ? 'Não disponível' : new Intl.NumberFormat('pt-BR').format(valor);
 
+function dataLocalIso(data) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function definirDatasPadraoSES() {
+  const agora = new Date();
+  const inicial = document.querySelector('#ses-query-start');
+  const final = document.querySelector('#ses-query-end');
+  inicial.value = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, '0')}-01`;
+  final.value = dataLocalIso(agora);
+}
+
+function intervaloConsultaSES() {
+  return {
+    inicial: document.querySelector('#ses-query-start')?.value || '',
+    final: document.querySelector('#ses-query-end')?.value || ''
+  };
+}
+
+function formatarDataIso(valor) {
+  const [ano, mes, dia] = String(valor || '').split('-');
+  return ano && mes && dia ? `${dia}/${mes}/${ano}` : '';
+}
+
 function formatarPeriodoRelatorio() {
+  if (currentTopic === 'Pagamentos SES') {
+    const { inicial, final } = intervaloConsultaSES();
+    return inicial && final ? `De ${formatarDataIso(inicial)} a ${formatarDataIso(final)}` : '';
+  }
   const tipoPeriodo = document.querySelector('input[name="periodo-tipo"]:checked')?.value;
   const valor = selectPeriodo.value;
   const meses = [
@@ -206,8 +230,6 @@ function formatarPeriodoRelatorio() {
   ];
 
   if (tipoPeriodo === 'anual') return `Ano de ${valor}`;
-
-  if (tipoPeriodo === 'todos') return `Todos os pagamentos de ${valor}`;
 
   if (tipoPeriodo === 'quadrimestral') {
     const [quadrimestre, ano] = valor.split('-');
@@ -483,7 +505,7 @@ function obterOpcoesFNS(tipo) {
   const mesAtual = agora.getMonth() + 1;
   const anos = Array.from({ length: anoAtual - PRIMEIRO_EXERCICIO_FNS + 1 }, (_, indice) => anoAtual - indice);
 
-  if (tipo === 'anual' || tipo === 'todos') return anos.map(ano => ({ value: String(ano), label: String(ano), meses: mesesDoExercicio(ano) }));
+  if (tipo === 'anual') return anos.map(ano => ({ value: String(ano), label: String(ano), meses: mesesDoExercicio(ano) }));
 
   if (tipo === 'quadrimestral') {
     return anos.flatMap(ano => {
@@ -708,14 +730,9 @@ function linhasPagamentosSES(pagamentos) {
 function atualizarTabelaPagamentosSES() {
   const conta = document.querySelector('#ses-conta-corrente')?.value || '';
   const resolucao = document.querySelector('#ses-resolucao')?.value || '';
-  const dataInicial = document.querySelector('#ses-data-inicial')?.value || '';
-  const dataFinal = document.querySelector('#ses-data-final')?.value || '';
   const filtrados = pagamentosSESPeriodo.filter(registro => {
-    const data = dataIsoPagamento(registro.dataPagamento);
     return (!conta || registro.contaCorrente === conta)
-      && (!resolucao || registro.numeroResolucao === resolucao)
-      && (!dataInicial || (data && data >= dataInicial))
-      && (!dataFinal || (data && data <= dataFinal));
+      && (!resolucao || registro.numeroResolucao === resolucao);
   });
   const corpo = document.querySelector('#ses-payment-rows');
   const quantidade = document.querySelector('#ses-payment-count');
@@ -725,10 +742,13 @@ function atualizarTabelaPagamentosSES() {
 }
 
 function renderizarPagamentosSES() {
-  const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
+  const { inicial, final } = intervaloConsultaSES();
   const chavesDuplicadas = new Set();
   pagamentosSESPeriodo = (dadosFonte?.dados?.pagamentos || [])
-    .filter(registro => meses.includes(registro.competenciaFiltro))
+    .filter(registro => {
+      const data = dataIsoPagamento(registro.dataPagamento);
+      return data && data >= inicial && data <= final;
+    })
     .map((registro, ordem) => ({ registro, ordem }))
     .sort((a, b) => ordemDataPagamento(a.registro.dataPagamento) - ordemDataPagamento(b.registro.dataPagamento) || a.ordem - b.ordem)
     .map(({ registro }) => registro)
@@ -745,14 +765,11 @@ function renderizarPagamentosSES() {
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const contas = [...new Set(pagamentosSESPeriodo.map(registro => registro.contaCorrente).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   const resolucoes = [...new Set(pagamentosSESPeriodo.map(registro => registro.numeroResolucao).filter(Boolean))].sort(ordenarResolucaoSES);
-  const datas = pagamentosSESPeriodo.map(registro => dataIsoPagamento(registro.dataPagamento)).filter(Boolean).sort();
   productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
     <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong id="ses-payment-count">${pagamentosSESPeriodo.length} ${pagamentosSESPeriodo.length === 1 ? 'registro' : 'registros'}</strong></div>
     <div class="ses-filters" aria-label="Filtros dos pagamentos consultados">
       <label for="ses-conta-corrente">Conta Corrente<select id="ses-conta-corrente"><option value="">Todas as contas</option>${contas.map(conta => `<option value="${escapar(conta)}">${escapar(conta)}</option>`).join('')}</select></label>
       <label for="ses-resolucao">Nº da Resolução<select id="ses-resolucao"><option value="">Todas as resoluções</option>${resolucoes.map(resolucao => `<option value="${escapar(resolucao)}">${escapar(resolucao)}</option>`).join('')}</select></label>
-      <label for="ses-data-inicial">Data inicial<input id="ses-data-inicial" type="date" min="${datas[0] || ''}" max="${datas.at(-1) || ''}"></label>
-      <label for="ses-data-final">Data final<input id="ses-data-final" type="date" min="${datas[0] || ''}" max="${datas.at(-1) || ''}"></label>
     </div>
     <div class="source-table-wrap"><table class="source-table ses-table">
       <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Projeto/Atividade</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
@@ -760,7 +777,7 @@ function renderizarPagamentosSES() {
     </table></div>
     <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
   </article>`;
-  document.querySelectorAll('#ses-conta-corrente, #ses-resolucao, #ses-data-inicial, #ses-data-final').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
+  document.querySelectorAll('#ses-conta-corrente, #ses-resolucao').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
   productionDashboard.hidden = false;
   printButton.disabled = pagamentosSESPeriodo.length === 0;
 }
@@ -891,6 +908,7 @@ async function atualizarMunicipioSelecionado() {
     ? '<option value="">Selecione primeiro o período</option>'
     : '<option value="">Selecione primeiro o município</option>';
   selectPeriodo.disabled = true;
+  document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => { campo.disabled = true; });
   emptyState.hidden = true;
   emptyState.textContent = 'Área preparada para inclusão dos indicadores.';
   emptyState.dataset.competencias = '';
@@ -900,11 +918,15 @@ async function atualizarMunicipioSelecionado() {
   document.querySelector('#retry-source').hidden = true;
   mostrarStatus('');
   if (!municipioSelecionado) return;
+  if (currentTopic === 'Pagamentos SES') {
+    document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => { campo.disabled = false; });
+    consultarPagamentosSES();
+    return;
+  }
   if (temasComReferenciaLivre.has(currentTopic)) {
     periodTypeInputs.forEach(input => {
-      const disponivel = input.value !== 'todos' || currentTopic === 'Pagamentos SES';
-      input.disabled = !disponivel;
-      input.closest('label').hidden = !disponivel;
+      input.disabled = false;
+      input.closest('label').hidden = false;
     });
     return;
   }
@@ -928,11 +950,6 @@ async function atualizarMunicipioSelecionado() {
     if (!rows.length) { mostrarStatus('O CONASEMS não disponibilizou registros para este município e tema.'); return; }
     competenciasDisponiveis = ordenarCompetencias(rows.map(row => row.competencia).filter(Boolean));
     periodTypeInputs.forEach(input => {
-      if (input.value === 'todos') {
-        input.disabled = true;
-        input.closest('label').hidden = true;
-        return;
-      }
       input.disabled = tema === 'cofinanciamento' && input.value === 'mensal';
       input.closest('label').hidden = tema === 'cofinanciamento' && input.value === 'mensal';
     });
@@ -973,9 +990,15 @@ async function consultarFinanciamentoFNS() {
 }
 
 async function consultarPagamentosSES() {
-  const referencia = selectPeriodo.value;
-  const ano = referencia.match(/(\d{4})$/)?.[1];
-  if (!selectMunicipio.value || !ano) return;
+  const { inicial, final } = intervaloConsultaSES();
+  if (!selectMunicipio.value || !inicial || !final) return;
+  if (inicial > final) {
+    mostrarStatus('A data inicial não pode ser posterior à data final.');
+    return;
+  }
+  const anoInicial = Number(inicial.slice(0, 4));
+  const anoFinal = Number(final.slice(0, 4));
+  const anos = Array.from({ length: anoFinal - anoInicial + 1 }, (_, indice) => anoInicial + indice);
   const versao = ++sequenciaConsulta;
   consultaEmCurso?.abort();
   dadosFonte = null;
@@ -984,12 +1007,19 @@ async function consultarPagamentosSES() {
   mostrarStatus('Consultando pagamentos da SES/MG…');
   consultaEmCurso = new AbortController();
   try {
-    const response = await fetch(`/api/ses?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${ano}`, { signal: consultaEmCurso.signal });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Não foi possível consultar a SES/MG.');
+    const resultados = await Promise.all(anos.map(async ano => {
+      const response = await fetch(`/api/ses?ibge=${encodeURIComponent(selectMunicipio.value)}&ano=${ano}`, { signal: consultaEmCurso.signal });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível consultar a SES/MG.');
+      return result;
+    }));
     if (versao !== sequenciaConsulta) return;
-    if (result.ibge !== selectMunicipio.value || result.tema !== 'pagamentos-ses') throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
-    dadosFonte = result;
+    if (resultados.some(result => result.ibge !== selectMunicipio.value || result.tema !== 'pagamentos-ses')) throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
+    dadosFonte = {
+      ...resultados[0],
+      anos,
+      dados: { pagamentos: resultados.flatMap(result => result.dados?.pagamentos || []) }
+    };
     mostrarStatus('');
     renderizarPagamentosSES();
   } catch (error) {
@@ -1027,14 +1057,6 @@ selectPeriodo.addEventListener('change', () => {
     if (referenciaSelecionada) consultarFinanciamentoFNS();
     return;
   }
-  if (currentTopic === 'Pagamentos SES') {
-    const referenciaSelecionada = Boolean(selectPeriodo.value);
-    emptyState.hidden = true;
-    productionDashboard.hidden = true;
-    printButton.disabled = true;
-    if (referenciaSelecionada) consultarPagamentosSES();
-    return;
-  }
   if (!dadosFonte) return;
   const periodoSelecionado = selectPeriodo.options[selectPeriodo.selectedIndex];
   const meses = (periodoSelecionado.dataset.meses || '').split(',').filter(Boolean);
@@ -1048,10 +1070,13 @@ selectPeriodo.addEventListener('change', () => {
 });
 document.querySelector('#retry-source').addEventListener('click', () => {
   if (currentTopic === 'Financiamento' && selectPeriodo.value) consultarFinanciamentoFNS();
-  else if (currentTopic === 'Pagamentos SES' && selectPeriodo.value) consultarPagamentosSES();
+  else if (currentTopic === 'Pagamentos SES' && intervaloConsultaSES().inicial && intervaloConsultaSES().final) consultarPagamentosSES();
   else atualizarMunicipioSelecionado();
 });
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
+document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => campo.addEventListener('change', () => {
+  if (currentTopic === 'Pagamentos SES' && selectMunicipio.value) consultarPagamentosSES();
+}));
 
 topicButtons.forEach((button) => {
   button.addEventListener('click', () => {
@@ -1063,16 +1088,17 @@ topicButtons.forEach((button) => {
     button.classList.add('active');
     currentTopic = button.dataset.topic;
     atualizarOpcoesMunicipio();
-    atualizarTiposPeriodoVisiveis();
-    periodTypeInputs.forEach(input => {
-      if (input.value !== 'todos') input.closest('label').hidden = false;
-    });
+    periodTypeInputs.forEach(input => { input.closest('label').hidden = false; });
     const cobertura = currentTopic === 'Cobertura da APS';
+    const pagamentosSES = currentTopic === 'Pagamentos SES';
     detail.classList.toggle('coverage-mode', cobertura);
-    document.querySelector('.period-types').hidden = cobertura;
-    document.querySelector('.period-value > label').hidden = cobertura;
-    selectPeriodo.closest('.select-wrap').hidden = cobertura;
-    periodFilter.setAttribute('aria-label', cobertura ? 'Ações do relatório' : 'Seleção do período');
+    document.querySelector('.period-types').hidden = cobertura || pagamentosSES;
+    document.querySelector('#ses-date-range').hidden = !pagamentosSES;
+    document.querySelector('.period-value > label').hidden = cobertura || pagamentosSES;
+    selectPeriodo.closest('.select-wrap').hidden = cobertura || pagamentosSES;
+    periodFilter.classList.toggle('ses-date-mode', pagamentosSES);
+    periodFilter.setAttribute('aria-label', cobertura ? 'Ações do relatório' : pagamentosSES ? 'Intervalo de consulta dos pagamentos SES' : 'Seleção do período');
+    if (pagamentosSES) definirDatasPadraoSES();
     productionDashboard.setAttribute('aria-label', cobertura ? 'Indicadores de cobertura' : 'Indicadores de produção');
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
       ? 'Produção da Atenção Primária'
@@ -1115,6 +1141,6 @@ document.querySelector('#voltar').addEventListener('click', () => {
   topicButtons.forEach((button) => button.classList.remove('active'));
   currentTopic = '';
   atualizarOpcoesMunicipio();
-  atualizarTiposPeriodoVisiveis();
+  periodFilter.classList.remove('ses-date-mode');
   window.scrollTo({ top: document.querySelector('.hero').offsetHeight, behavior: 'smooth' });
 });
