@@ -249,9 +249,14 @@ select:focus {
 }
 
 .topics button {
-  min-height: 112px;
+  min-height: 176px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   padding: 18px;
-  border: 0;
+  border: 1px solid #E1E7EB;
   border-radius: 12px;
   background: var(--white);
   color: var(--navy);
@@ -260,6 +265,21 @@ select:focus {
   box-shadow: 0 8px 24px rgba(14, 27, 43, 0.07);
   transition: transform 160ms ease, background 160ms ease, color 160ms ease;
 }
+
+.menu-icon {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  color: #7E8994;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: color 160ms ease;
+}
+
+.topics button > span { max-width: 100%; text-align: center; }
 
 .topics button:disabled {
   background: rgba(255, 255, 255, 0.6);
@@ -271,9 +291,13 @@ select:focus {
 .topics button:not(:disabled):hover,
 .topics button.active {
   transform: translateY(-3px);
-  background: var(--green);
+  border-color: #BFEDE0;
+  background: #FFFFFF;
   color: var(--navy);
 }
+
+.topics button:not(:disabled):hover .menu-icon,
+.topics button.active .menu-icon { color: var(--green); }
 
 .detail {
   margin-top: 0;
@@ -884,7 +908,8 @@ select:focus {
   .total-card { grid-template-columns: 1fr; }
   .total-metric + .total-metric { border-top: 1px solid var(--light); border-left: 5px solid var(--green); }
   .topics { grid-template-columns: 1fr; }
-  .topics button { min-height: 74px; }
+  .topics button { min-height: 132px; gap: 10px; }
+  .menu-icon { width: 50px; height: 50px; }
   .dashboard-footer { margin: 30px -16px -16px; }
   .fns-panel { padding: 16px; }
   .fns-summary-grid { grid-template-columns: 1fr; }
