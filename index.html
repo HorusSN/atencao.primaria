@@ -56,9 +56,13 @@
               <label><input type="radio" name="periodo-tipo" value="anual" disabled><span>Anual</span></label>
               <label><input type="radio" name="periodo-tipo" value="quadrimestral" disabled><span>Quadrimestral</span></label>
               <label><input type="radio" name="periodo-tipo" value="mensal" disabled><span>Mensal</span></label>
-              <label class="period-all" hidden><input type="radio" name="periodo-tipo" value="todos" disabled><span>Todos</span></label>
             </div>
           </fieldset>
+
+          <section class="ses-date-range" id="ses-date-range" aria-label="Intervalo de consulta dos pagamentos SES" hidden>
+            <label for="ses-query-start">Data inicial<input id="ses-query-start" type="date" disabled></label>
+            <label for="ses-query-end">Data final<input id="ses-query-end" type="date" disabled></label>
+          </section>
 
           <div class="period-value">
             <label for="periodo-valor">Referência</label>
