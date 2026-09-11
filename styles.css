@@ -109,6 +109,8 @@ main:has(> .detail:not([hidden])) {
   gap: 10px;
 }
 
+.period-options.has-all-period { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
 .period-options label { cursor: pointer; }
 .period-options input { position: absolute; opacity: 0; pointer-events: none; }
 
