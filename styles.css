@@ -354,7 +354,6 @@ select:focus {
 .cofinance-table th:first-child { width: 16%; min-width: 145px; }
 .cofinance-table th:nth-child(2) { width: 48%; }
 @media print {
-  #retry-source { display: none !important; }
   .ses-filters { display: none !important; }
   .source-table-wrap { overflow: visible; }
   .source-table { font-size: 7pt; table-layout: fixed; overflow-wrap: anywhere; }
