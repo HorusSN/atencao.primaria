@@ -717,6 +717,16 @@ function ordenarResolucaoSES(a, b) {
 
 let pagamentosSESPeriodo = [];
 
+function consolidadoPagamentosSES(pagamentos) {
+  const totalRecebido = pagamentos.reduce((total, registro) => total + (Number.isFinite(registro.valorPago) ? registro.valorPago : 0), 0);
+  return {
+    totalRecebido,
+    quantidadeTransferencias: pagamentos.length,
+    contasCreditadas: new Set(pagamentos.map(registro => registro.contaCorrente).filter(Boolean)).size,
+    resolucoesContempladas: new Set(pagamentos.map(registro => registro.numeroResolucao).filter(Boolean)).size
+  };
+}
+
 function linhasPagamentosSES(pagamentos) {
   return pagamentos.map(registro => {
     const resolucao = `${registro.numeroResolucao || 'Não informada'}${registro.origem === 'restos-a-pagar' ? '*' : ''}`;
@@ -770,7 +780,17 @@ function renderizarPagamentosSES() {
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const contas = [...new Set(pagamentosSESPeriodo.map(registro => registro.contaCorrente).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   const resolucoes = [...new Set(pagamentosSESPeriodo.map(registro => registro.numeroResolucao).filter(Boolean))].sort(ordenarResolucaoSES);
-  productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
+  const consolidado = consolidadoPagamentosSES(pagamentosSESPeriodo);
+  const cardsConsolidado = [
+    ['Total Recebido', formatarMoeda(consolidado.totalRecebido)],
+    ['Quantidade de Transferências', formatarNumero(consolidado.quantidadeTransferencias)],
+    ['Contas Creditadas', formatarNumero(consolidado.contasCreditadas)],
+    ['Resoluções Contempladas', formatarNumero(consolidado.resolucoesContempladas)]
+  ].map(([titulo, valor]) => `<section class="ses-summary-card"><span>${escapar(titulo)}</span><strong>${escapar(valor)}</strong><small>No período selecionado</small></section>`).join('');
+  productionIndicators.innerHTML = `<article class="indicator-panel ses-summary-panel">
+    <h3>Consolidado de repasses da SES/MG</h3>
+    <div class="ses-summary-grid">${cardsConsolidado}</div>
+  </article><article class="indicator-panel ses-panel">
     <div class="ses-panel-heading"><div><h3>Pagamentos da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong id="ses-payment-count">${pagamentosSESPeriodo.length} ${pagamentosSESPeriodo.length === 1 ? 'registro' : 'registros'}</strong></div>
     <div class="ses-filters" aria-label="Filtros dos pagamentos consultados">
       <label for="ses-origem">Tipo de pagamento<select id="ses-origem"><option value="todos" selected>Todos</option><option value="ordinarios">Ordinários</option><option value="restos-a-pagar">Restos a pagar</option></select></label>
