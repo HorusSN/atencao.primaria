@@ -387,7 +387,7 @@ function atualizarCabecalhoRelatorio() {
     @media print {
       @page {
         @bottom-left {
-          content: "Documento gerado eletronicamente a partir do acesso do usuário ao Sistema Hórus de Informações da Atenção Primária.\\A Emitido eletronicamente por HSN em ${dataHora}.";
+          content: "Documento gerado eletronicamente a partir do acesso do usuário ao Sistema Hórus de Informações em Saúde Pública.\\A Emitido eletronicamente por HSN em ${dataHora}.";
           white-space: pre-wrap;
           width: 155mm;
         }
