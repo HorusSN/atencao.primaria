@@ -718,13 +718,16 @@ function ordenarResolucaoSES(a, b) {
 let pagamentosSESPeriodo = [];
 
 function linhasPagamentosSES(pagamentos) {
-  return pagamentos.map(registro => `<tr>
+  return pagamentos.map(registro => {
+    const resolucao = `${registro.numeroResolucao || 'Não informada'}${registro.origem === 'restos-a-pagar' ? '*' : ''}`;
+    return `<tr>
     <td class="ses-date">${escapar(registro.dataPagamento || 'Não informada')}</td>
-    <td class="ses-resolution">${escapar(registro.numeroResolucao || 'Não informada')}</td>
+    <td class="ses-resolution">${escapar(resolucao)}</td>
     <td>${escapar(registro.projetoAtividade || 'Não informado')}</td>
     <td class="ses-account">${escapar(registro.contaCorrente || 'Não informada')}</td>
     <td class="ses-currency">${formatarMoeda(registro.valorPago)}</td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 function atualizarTabelaPagamentosSES() {
@@ -778,7 +781,7 @@ function renderizarPagamentosSES() {
       <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Projeto/Atividade</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
       <tbody id="ses-payment-rows">${linhasPagamentosSES(pagamentosSESPeriodo) || '<tr><td colspan="5" class="ses-empty">Não há pagamentos no período selecionado.</td></tr>'}</tbody>
     </table></div>
-    <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
+    <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG). <strong>*</strong> Resolução referente a pagamento de restos a pagar.</p>
   </article>`;
   document.querySelectorAll('#ses-origem, #ses-conta-corrente, #ses-resolucao').forEach(campo => campo.addEventListener('change', atualizarTabelaPagamentosSES));
   productionDashboard.hidden = false;
@@ -918,7 +921,6 @@ async function atualizarMunicipioSelecionado() {
   productionDashboard.hidden = true;
   printButton.disabled = true;
   productionIndicators.innerHTML = '';
-  document.querySelector('#retry-source').hidden = true;
   mostrarStatus('');
   if (!municipioSelecionado) return;
   if (currentTopic === 'Pagamentos SES') {
@@ -945,7 +947,6 @@ async function atualizarMunicipioSelecionado() {
     if (result.ibge !== selectMunicipio.value || result.tema !== tema) throw new Error('A fonte retornou dados incompatíveis com o município selecionado.');
     dadosFonte = result;
     mostrarStatus(result.aviso || '');
-    if (result.aviso) document.querySelector('#retry-source').hidden = false;
     if (tema === 'cobertura') { renderizarCobertura(); return; }
     const rows = tema === 'producao'
       ? result.dados.producao
@@ -960,7 +961,6 @@ async function atualizarMunicipioSelecionado() {
     if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
     dadosFonte = null;
     mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta do servidor. Tente novamente.' : error.message);
-    document.querySelector('#retry-source').hidden = false;
   }
 }
 
@@ -988,7 +988,6 @@ async function consultarFinanciamentoFNS() {
     if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
     dadosFonte = null;
     mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta do FNS. Tente novamente.' : error.message);
-    document.querySelector('#retry-source').hidden = false;
   }
 }
 
@@ -1029,7 +1028,6 @@ async function consultarPagamentosSES() {
     if (versao !== sequenciaConsulta || error.name === 'AbortError') return;
     dadosFonte = null;
     mostrarStatus(error instanceof SyntaxError ? 'Não foi possível carregar a resposta da SES/MG. Tente novamente.' : error.message);
-    document.querySelector('#retry-source').hidden = false;
   }
 }
 
@@ -1070,11 +1068,6 @@ selectPeriodo.addEventListener('change', () => {
   printButton.disabled = !referenciaSelecionada || currentTopic !== 'Produção';
   if (referenciaSelecionada && currentTopic === 'Produção') renderizarProducao(meses);
   if (referenciaSelecionada && ['Financiamento','Cofinanciamento'].includes(currentTopic)) { emptyState.hidden = true; renderizarFinanceiro(); }
-});
-document.querySelector('#retry-source').addEventListener('click', () => {
-  if (currentTopic === 'Financiamento' && selectPeriodo.value) consultarFinanciamentoFNS();
-  else if (currentTopic === 'Pagamentos SES' && intervaloConsultaSES().inicial && intervaloConsultaSES().final) consultarPagamentosSES();
-  else atualizarMunicipioSelecionado();
 });
 periodTypeInputs.forEach((input) => input.addEventListener('change', () => preencherPeriodos(input.value)));
 document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => campo.addEventListener('change', () => {
