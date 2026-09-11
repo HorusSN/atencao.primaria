@@ -661,21 +661,33 @@ function formatarMoeda(valor) {
     : 'Não informado';
 }
 
+function ordemDataPagamento(valor) {
+  const texto = String(valor || '').trim();
+  const brasileiro = texto.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})\b/);
+  if (brasileiro) return Number(`${brasileiro[3]}${brasileiro[2].padStart(2, '0')}${brasileiro[1].padStart(2, '0')}`);
+  const iso = texto.match(/\b(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})\b/);
+  return iso ? Number(`${iso[1]}${iso[2].padStart(2, '0')}${iso[3].padStart(2, '0')}`) : Number.MAX_SAFE_INTEGER;
+}
+
 function renderizarPagamentosSES() {
   const meses = (selectPeriodo.options[selectPeriodo.selectedIndex]?.dataset.meses || '').split(',').filter(Boolean);
-  const pagamentos = (dadosFonte?.dados?.pagamentos || []).filter(registro => meses.includes(registro.competenciaFiltro));
+  const pagamentos = (dadosFonte?.dados?.pagamentos || [])
+    .filter(registro => meses.includes(registro.competenciaFiltro))
+    .map((registro, ordem) => ({ registro, ordem }))
+    .sort((a, b) => ordemDataPagamento(a.registro.dataPagamento) - ordemDataPagamento(b.registro.dataPagamento) || a.ordem - b.ordem)
+    .map(({ registro }) => registro);
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex]?.text || '';
   const linhas = pagamentos.map(registro => `<tr>
     <td class="ses-date">${escapar(registro.dataPagamento || 'Não informada')}</td>
     <td class="ses-resolution">${escapar(registro.numeroResolucao || 'Não informada')}</td>
-    <td>${escapar(registro.acoes || 'Não informadas')}</td>
+    <td>${escapar(registro.projetoAtividade || 'Não informado')}</td>
     <td class="ses-account">${escapar(registro.contaCorrente || 'Não informada')}</td>
     <td class="ses-currency">${formatarMoeda(registro.valorPago)}</td>
   </tr>`).join('');
   productionIndicators.innerHTML = `<article class="indicator-panel ses-panel">
     <div class="ses-panel-heading"><div><h3>Pagamentos Orçamentários da SES/MG</h3><p>${escapar(municipio)} · ${escapar(formatarPeriodoRelatorio())}</p></div><strong>${pagamentos.length} registros</strong></div>
     <div class="source-table-wrap"><table class="source-table ses-table">
-      <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Ações</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
+      <thead><tr><th scope="col">Data do pagamento</th><th scope="col">Nº da resolução</th><th scope="col">Projeto/Atividade</th><th scope="col">Conta corrente</th><th scope="col">Valor pago</th></tr></thead>
       <tbody>${linhas || '<tr><td colspan="5" class="ses-empty">Não há pagamentos no período selecionado.</td></tr>'}</tbody>
     </table></div>
     <p class="indicator-note"><strong>Fonte:</strong> Secretaria de Estado de Saúde de Minas Gerais (SES/MG).</p>
