@@ -1,7 +1,10 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": { "api/conasems.js": { "maxDuration": 60 } },
+  "functions": {
+    "api/conasems.js": { "maxDuration": 60 },
+    "api/resolucoes-ses.js": { "maxDuration": 60 }
+  },
   "cleanUrls": true,
   "trailingSlash": false
 }
