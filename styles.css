@@ -444,6 +444,11 @@ select:focus {
   .ses-table { width: 100%; min-width: 0; font-size: 6.6pt; table-layout: fixed; }
   .ses-table th, .ses-table td { padding: 1.6mm 1.2mm; overflow-wrap: anywhere; }
   .ses-table th { font-size: 5.1pt; }
+  .ses-table th:nth-child(1), .ses-table td:nth-child(1) { width: 14%; min-width: 0; white-space: nowrap; }
+  .ses-table th:nth-child(2), .ses-table td:nth-child(2) { width: 15%; min-width: 0; white-space: nowrap; }
+  .ses-table th:nth-child(3), .ses-table td:nth-child(3) { width: 42%; min-width: 0; white-space: normal; overflow-wrap: break-word; }
+  .ses-table th:nth-child(4), .ses-table td:nth-child(4) { width: 13%; min-width: 0; white-space: nowrap; }
+  .ses-table th:nth-child(5), .ses-table td:nth-child(5) { width: 16%; min-width: 0; white-space: nowrap; }
   .ses-panel-heading > strong { font-size: 7pt; }
 }
 
