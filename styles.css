@@ -972,6 +972,7 @@ select:focus {
   .detail > h2,
   .detail > #detail-city,
   .filter-layout,
+  .resolutions-filter,
   .empty-state {
     display: none !important;
   }
