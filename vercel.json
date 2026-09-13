@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
+    "api/cnes.js": { "maxDuration": 60 },
     "api/conasems.js": { "maxDuration": 60 },
     "api/resolucoes-ses.js": { "maxDuration": 60 }
   },

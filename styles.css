@@ -344,8 +344,24 @@ select:focus {
   cursor: not-allowed;
 }
 
+.cnes-consult {
+  min-width: 112px;
+  height: 60px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--green);
+  color: var(--navy);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cnes-consult:not(:disabled):hover { background: #20AE78; }
+.cnes-consult:disabled { background: #B7D8CC; color: #63746E; cursor: not-allowed; }
+
 .print-report-header { display: none; }
 #source-status { margin: 16px 0; color: #53657C; font-size: 0.875rem; line-height: 1.5; }
+#source-status[data-type="error"] { padding: 12px 14px; border-left: 4px solid #C33C54; background: #FFF1F3; color: #8A2337; }
 .source-table-wrap { overflow-x: auto; }
 .source-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .source-table th, .source-table td { padding: 12px; border-bottom: 1px solid #D7DEE4; text-align: left; }
@@ -1343,4 +1359,94 @@ select:focus {
   .aps-map-label { grid-template-columns: 11mm minmax(0,1fr); font-size: 7pt; gap: 1mm; }
   .aps-map .aps-stack { height: 5mm; }
   .aps-map .aps-stack span { font-size: 8pt; }
+}
+
+/* Módulo CNES */
+.cnes-panel { padding: 24px; border: 1px solid #D6E3F3; border-top: 4px solid var(--blue); border-radius: 14px; background: #F7FAFE; }
+.cnes-panel-heading, .cnes-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.cnes-panel-heading h3, .cnes-detail-heading h3 { margin: 3px 0 6px; color: #214772; font-size: clamp(1.15rem, 2vw, 1.55rem); }
+.cnes-panel-heading p, .cnes-detail-heading p { margin: 0; color: #607188; }
+.cnes-panel-heading > strong { flex: 0 0 auto; padding: 8px 12px; border-radius: 999px; background: #E5F7F1; color: #147E61; font-size: .82rem; }
+.cnes-eyebrow { color: #178468 !important; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.cnes-rule-note { margin-bottom: 18px; }
+.cnes-unit-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.cnes-unit-card { min-width: 0; display: grid; gap: 12px; padding: 20px; border: 1px solid #D8E5F3; border-left: 5px solid var(--green); border-radius: 12px; background: #FFF; color: var(--navy); text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(14, 27, 43, .06); transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease; }
+.cnes-unit-card:hover { transform: translateY(-2px); border-color: #8FDAC1; box-shadow: 0 10px 24px rgba(14, 27, 43, .1); }
+.cnes-unit-card-simple { grid-template-columns: 105px minmax(0, 1fr) auto; align-items: center; }
+.cnes-unit-card-simple .cnes-number { color: #607188; font-size: .75rem; font-weight: 800; }
+.cnes-unit-card:focus-visible, .cnes-secondary-button:focus-visible, .cnes-text-button:focus-visible { outline: 3px solid rgba(26, 115, 233, .35); outline-offset: 3px; }
+.cnes-unit-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.cnes-unit-heading strong { color: #214772; line-height: 1.35; }
+.cnes-unit-heading > span { flex: 0 0 auto; color: #65758B; font-size: .72rem; font-weight: 800; }
+.cnes-unit-meta { display: flex; flex-wrap: wrap; gap: 7px; }
+.cnes-unit-meta span, .cnes-sus-badge { padding: 5px 8px; border-radius: 999px; background: #E7F6F1; color: #17785D; font-size: .7rem; font-weight: 800; }
+.cnes-unit-address { color: #5D6D82; font-size: .82rem; line-height: 1.5; }
+.cnes-unit-action { color: #1A73E9; font-size: .8rem; font-weight: 800; }
+.cnes-completeness { margin: 18px 0 0; color: #805E1E; font-size: .8rem; font-weight: 700; text-align: center; }
+.cnes-completeness.cnes-complete { color: #17785D; }
+.cnes-secondary-button { display: block; min-height: 48px; margin: 18px auto 0; padding: 10px 18px; border: 1px solid #B7D2EF; border-radius: 8px; background: #FFF; color: #214772; font-weight: 800; cursor: pointer; }
+.cnes-secondary-button:hover { background: #EAF3FC; }
+.cnes-text-button { margin: 0 0 18px; padding: 0; border: 0; background: transparent; color: #1A73E9; font: 800 .85rem "Inter", Arial, sans-serif; cursor: pointer; }
+.cnes-sus-badge { flex: 0 0 auto; padding: 8px 12px; }
+.cnes-basic-data { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; margin: 0 0 24px; border: 1px solid #D8E5F3; border-radius: 12px; background: #D8E5F3; }
+.cnes-basic-data > div { min-width: 0; padding: 15px 18px; background: #FFF; }
+.cnes-basic-data dt { margin-bottom: 6px; color: #607188; font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+.cnes-basic-data dd { margin: 0; color: var(--navy); font-size: .88rem; line-height: 1.5; overflow-wrap: anywhere; }
+.cnes-subsection { margin-top: 22px; padding-top: 20px; border-top: 1px solid #D7E3F0; }
+.cnes-subsection h4 { margin: 0 0 14px; color: #214772; font-size: 1.08rem; }
+.cnes-loading, .cnes-empty, .cnes-unavailable { padding: 18px; border-radius: 10px; background: #FFF; color: #607188; line-height: 1.55; }
+.cnes-loading::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 10px; border: 2px solid #BCD3EB; border-top-color: #1A73E9; border-radius: 50%; vertical-align: -2px; animation: cnes-spin .8s linear infinite; }
+@keyframes cnes-spin { to { transform: rotate(360deg); } }
+.cnes-unavailable { border-left: 4px solid #E8AA30; background: #FFF9EB; }
+.cnes-unavailable strong { color: #805E1E; }
+.cnes-unavailable p { margin: 6px 0 0; }
+.cnes-professional-list { display: grid; gap: 12px; }
+.cnes-professional { padding: 18px; border: 1px solid #D8E5F3; border-radius: 12px; background: #FFF; break-inside: avoid; }
+.cnes-professional-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.cnes-professional-heading h5 { margin: 0; color: #214772; font-size: 1rem; }
+.cnes-professional-heading span { color: #718096; font-size: .72rem; }
+.cnes-link-type { margin: 8px 0; color: #607188; font-size: .78rem; }
+.cnes-professional ul, .cnes-team-list { margin: 12px 0 0; padding: 0; list-style: none; }
+.cnes-occupation { display: grid; grid-template-columns: minmax(190px, 1fr) minmax(230px, 1fr) auto; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid #EDF1F5; }
+.cnes-occupation > div { display: grid; gap: 4px; }
+.cnes-occupation span, .cnes-occupation small { color: #607188; font-size: .76rem; line-height: 1.4; }
+.cnes-workload { display: flex !important; flex-direction: row; flex-wrap: wrap; gap: 5px 10px !important; }
+.cnes-workload strong { flex-basis: 100%; color: #17785D; font-size: .78rem; }
+.cnes-team-list { display: grid; gap: 8px; }
+.cnes-team-card { width: 100%; display: grid; grid-template-columns: minmax(190px, 1.3fr) minmax(190px, 1fr) 140px auto; gap: 14px; align-items: center; padding: 14px; border: 1px solid #D8E5F3; border-radius: 9px; background: #FFF; color: var(--navy); text-align: left; cursor: pointer; }
+.cnes-team-card:hover, .cnes-team-card.active { border-color: #73CEAE; background: #F0FBF7; }
+.cnes-team-card > span { display: grid; gap: 4px; color: #607188; font-size: .78rem; }
+.cnes-team-card small { color: #718096; font-size: .7rem; }
+.cnes-team-card b { color: #1A73E9; font-size: .76rem; }
+
+@media screen and (max-width: 760px) {
+  .cnes-unit-list, .cnes-basic-data { grid-template-columns: 1fr; }
+  .cnes-panel-heading, .cnes-detail-heading, .cnes-professional-heading { flex-direction: column; }
+  .cnes-occupation { grid-template-columns: 1fr; gap: 8px; }
+  .cnes-unit-card-simple, .cnes-team-card { grid-template-columns: 1fr; }
+}
+
+@media screen and (max-width: 560px) {
+  .cnes-consult { width: 100%; height: 50px; }
+  .cnes-panel { padding: 16px; }
+  .cnes-unit-card { padding: 16px; }
+  .cnes-unit-heading { flex-direction: column; }
+  .cnes-unit-card-simple .cnes-unit-action { justify-self: start; }
+}
+
+@media print {
+  .cnes-text-button, .cnes-secondary-button { display: none !important; }
+  .cnes-panel { padding: 0 !important; border: 0 !important; background: #FFF !important; }
+  .cnes-unit-list { grid-template-columns: 1fr; gap: 2mm; }
+  .cnes-unit-card { padding: 3mm; border-left-width: 1.2mm; box-shadow: none; break-inside: avoid; }
+  .cnes-unit-card-simple { grid-template-columns: 27mm minmax(0, 1fr); }
+  .cnes-unit-action { display: none; }
+  .cnes-basic-data { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cnes-basic-data > div, .cnes-professional { padding: 3mm; }
+  .cnes-subsection { margin-top: 4mm; padding-top: 4mm; }
+  .cnes-professional-heading h5 { font-size: 9pt; }
+  .cnes-occupation { grid-template-columns: 42mm minmax(0, 1fr) 31mm; gap: 2mm; padding: 2mm 0; }
+  .cnes-loading { display: none; }
+  .cnes-team-card { grid-template-columns: 38mm minmax(0, 1fr) 25mm; padding: 2mm; break-inside: avoid; }
+  .cnes-team-card b { display: none; }
 }

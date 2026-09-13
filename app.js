@@ -362,6 +362,8 @@ function atualizarCabecalhoRelatorio() {
     ? 'Repasses do Fundo Nacional de Saúde (FNS)'
     : currentTopic === 'Pagamentos SES'
       ? 'Relatório de Pagamentos SES'
+      : currentTopic === 'CNES'
+        ? 'Relatório do Cadastro Nacional de Estabelecimentos de Saúde'
     : `Relatório de ${currentTopic === 'Cobertura da APS' ? 'Cobertura' : currentTopic} da Atenção Primária`;
   const agora = new Date();
   const dataHora = agora.toLocaleString('pt-BR', {
@@ -1052,6 +1054,14 @@ async function atualizarMunicipioSelecionado() {
   printButton.disabled = true;
   productionIndicators.innerHTML = '';
   mostrarStatus('');
+  if (currentTopic === 'CNES') {
+    window.HorusCnes.prepararMunicipio();
+    emptyState.textContent = municipioSelecionado
+      ? 'Clique em Consultar para carregar os estabelecimentos elegíveis do município.'
+      : 'Selecione um município para consultar o CNES.';
+    emptyState.hidden = false;
+    return;
+  }
   if (!municipioSelecionado) return;
   if (currentTopic === 'Pagamentos SES') {
     document.querySelectorAll('#ses-query-start, #ses-query-end').forEach(campo => { campo.disabled = false; });
@@ -1223,18 +1233,20 @@ topicButtons.forEach((button) => {
     const cobertura = currentTopic === 'Cobertura da APS';
     const pagamentosSES = currentTopic === 'Pagamentos SES';
     const resolucoesSES = currentTopic === 'Resoluções SES/MG';
+    const moduloCnes = currentTopic === 'CNES';
     detail.classList.toggle('coverage-mode', cobertura);
     detail.classList.toggle('resolutions-mode', resolucoesSES);
     document.querySelector('.filter-layout').hidden = resolucoesSES;
     resolutionsFilter.hidden = !resolucoesSES;
-    document.querySelector('.period-types').hidden = cobertura || pagamentosSES;
+    document.querySelector('.period-types').hidden = cobertura || pagamentosSES || moduloCnes;
     document.querySelector('#ses-date-range').hidden = !pagamentosSES;
-    document.querySelector('.period-value > label').hidden = cobertura || pagamentosSES;
-    selectPeriodo.closest('.select-wrap').hidden = cobertura || pagamentosSES;
+    document.querySelector('.period-value > label').hidden = cobertura || pagamentosSES || moduloCnes;
+    selectPeriodo.closest('.select-wrap').hidden = cobertura || pagamentosSES || moduloCnes;
+    document.querySelector('#cnes-consultar').hidden = !moduloCnes;
     periodFilter.classList.toggle('ses-date-mode', pagamentosSES);
-    periodFilter.setAttribute('aria-label', cobertura ? 'Ações do relatório' : pagamentosSES ? 'Intervalo de consulta dos pagamentos SES' : 'Seleção do período');
+    periodFilter.setAttribute('aria-label', cobertura || moduloCnes ? 'Ações da consulta e do relatório' : pagamentosSES ? 'Intervalo de consulta dos pagamentos SES' : 'Seleção do período');
     if (pagamentosSES) definirDatasPadraoSES();
-    productionDashboard.setAttribute('aria-label', cobertura ? 'Indicadores de cobertura' : 'Indicadores de produção');
+    productionDashboard.setAttribute('aria-label', cobertura ? 'Indicadores de cobertura' : moduloCnes ? 'Estabelecimentos e profissionais do CNES' : 'Indicadores de produção');
     document.querySelector('#detail-title').textContent = currentTopic === 'Produção'
       ? 'Produção da Atenção Primária'
       : currentTopic === 'Financiamento'
@@ -1243,6 +1255,8 @@ topicButtons.forEach((button) => {
           ? 'Pagamentos SES'
           : currentTopic === 'Resoluções SES/MG'
             ? 'Resoluções SES/MG'
+          : currentTopic === 'CNES'
+            ? 'CNES — Estabelecimentos e Profissionais'
           : button.dataset.topic;
     selectMunicipio.value = '';
     topics.hidden = true;
@@ -1262,7 +1276,11 @@ printButton.addEventListener('click', () => {
   atualizarCabecalhoRelatorio();
   const tituloAnterior = document.title;
   const municipio = selectMunicipio.options[selectMunicipio.selectedIndex].text;
-  const periodo = currentTopic === 'Cobertura da APS' ? referenciaCobertura() : selectPeriodo.options[selectPeriodo.selectedIndex].text;
+  const periodo = currentTopic === 'Cobertura da APS'
+    ? referenciaCobertura()
+    : currentTopic === 'CNES'
+      ? window.HorusCnes.periodoRelatorio()
+      : selectPeriodo.options[selectPeriodo.selectedIndex].text;
   document.title = `Relatório APS - ${municipio} - ${periodo}`;
   window.addEventListener('afterprint', () => {
     document.title = tituloAnterior;
@@ -1282,6 +1300,7 @@ function voltarParaInicio() {
   topics.hidden = false;
   topicButtons.forEach((button) => button.classList.remove('active'));
   currentTopic = '';
+  window.HorusCnes.reset();
   atualizarOpcoesMunicipio();
   periodFilter.classList.remove('ses-date-mode');
   detail.classList.remove('coverage-mode', 'resolutions-mode');
@@ -1292,3 +1311,4 @@ function voltarParaInicio() {
 
 document.querySelector('#voltar').addEventListener('click', voltarParaInicio);
 document.querySelector('#resolution-back').addEventListener('click', voltarParaInicio);
+window.HorusCnes.init();
