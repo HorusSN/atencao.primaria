@@ -1437,12 +1437,15 @@ select:focus {
 @media print {
   .cnes-text-button, .cnes-secondary-button { display: none !important; }
   .cnes-panel { padding: 0 !important; border: 0 !important; background: #FFF !important; }
+  .cnes-selected-team { break-before: page; page-break-before: always; }
   .cnes-unit-list { grid-template-columns: 1fr; gap: 2mm; }
   .cnes-unit-card { padding: 3mm; border-left-width: 1.2mm; box-shadow: none; break-inside: avoid; }
   .cnes-unit-card-simple { grid-template-columns: 27mm minmax(0, 1fr); }
   .cnes-unit-action { display: none; }
   .cnes-basic-data { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cnes-professional-list { display: block; }
   .cnes-basic-data > div, .cnes-professional { padding: 3mm; }
+  .cnes-professional { margin-bottom: 3mm; break-inside: avoid-page; page-break-inside: avoid; }
   .cnes-subsection { margin-top: 4mm; padding-top: 4mm; }
   .cnes-professional-heading h5 { font-size: 9pt; }
   .cnes-occupation { grid-template-columns: 42mm minmax(0, 1fr) 31mm; gap: 2mm; padding: 2mm 0; }
