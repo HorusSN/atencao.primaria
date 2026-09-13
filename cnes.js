@@ -2,11 +2,17 @@
   const state = {
     municipio: '', estabelecimentos: [], nextCursor: 0, hasNext: false, consultadoEm: null,
     unidade: null, equipes: null, equipe: null, profissionais: null, profissionaisNextCursor: 0, profissionaisHasNext: false,
-    outros: null, outrosNextCursor: 0, outrosHasNext: false, outrosPreciso: true,
+    outros: null, outrosNextCursor: 0, outrosHasNext: false, outrosPreciso: true, modo: '',
     listaController: null, detalheController: null, equipeController: null
   };
   const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const $ = seletor => document.querySelector(seletor);
+
+  function renderizarMenu() {
+    prepararSaida();
+    $('#imprimir').disabled = true;
+    $('#production-indicators').innerHTML = `<article class="indicator-panel cnes-panel"><p class="cnes-eyebrow">CNES · Consultas</p><h3>Escolha uma consulta</h3><div class="cnes-menu-grid"><button class="cnes-menu-card" type="button" data-cnes-mode="sus"><strong>1 · Estabelecimentos do SUS</strong><span>Consulta atual de estabelecimentos elegíveis.</span></button><button class="cnes-menu-card" type="button" data-cnes-mode="gerais"><strong>2 · Estabelecimentos Gerais</strong><span>Todos os estabelecimentos cadastrados no município.</span></button><button class="cnes-menu-card" type="button" data-cnes-mode="equipes"><strong>3 · Equipes</strong><span>Todas as equipes cadastradas no município.</span></button><button class="cnes-menu-card" type="button" data-cnes-mode="profissionais"><strong>4 · Profissionais</strong><span>Nome, CBO, cargo, carga horária, CNES e mantenedora.</span></button></div></article>`;
+  }
 
   function mostrarStatus(mensagem, tipo = '') {
     const status = $('#source-status');
@@ -53,7 +59,7 @@
     $('#cnes-consultar').disabled = true;
     mostrarStatus(continuar ? 'Carregando a próxima parte da lista oficial…' : 'Consultando unidades elegíveis no CNES…');
     try {
-      const params = new URLSearchParams({ resource: 'estabelecimentos', ibge: municipio, cursor: String(state.nextCursor || 0), pageSize: '20' });
+      const params = new URLSearchParams({ resource: state.modo === 'gerais' ? 'estabelecimentos-gerais' : 'estabelecimentos', ibge: municipio, cursor: String(state.nextCursor || 0), pageSize: '20' });
       const response = await fetch(`/api/cnes?${params}`, { signal: state.listaController.signal });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Não foi possível consultar as unidades do CNES.');
@@ -65,6 +71,24 @@
     } catch (error) {
       if (error.name !== 'AbortError') mostrarStatus(error instanceof SyntaxError ? 'A fonte CNES retornou uma resposta inválida.' : error.message, 'error');
     } finally { $('#cnes-consultar').disabled = !$('#municipio').value; }
+  }
+
+  async function carregarConsultaMunicipal(modo) {
+    const municipio = $('#municipio').value;
+    if (!municipio) return mostrarStatus('Selecione um município antes de consultar.', 'error');
+    state.modo = modo; mostrarStatus('Consultando dados oficiais do CNES…'); prepararSaida();
+    try {
+      const resource = modo === 'equipes' ? 'equipes-municipio' : 'profissionais-municipio';
+      const response = await fetch(`/api/cnes?resource=${resource}&ibge=${encodeURIComponent(municipio)}`);
+      const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Não foi possível consultar o CNES.');
+      if (modo === 'equipes') {
+        $('#production-indicators').innerHTML = `<article class="indicator-panel cnes-panel"><button class="cnes-text-button" type="button" data-cnes-menu>← Voltar às consultas</button><h3>Equipes do município</h3><div class="cnes-team-list">${(result.items || []).map(e => `<article class="cnes-team-card"><span><strong>${escapar(e.nome)}</strong><small>INE ${escapar(e.ine)} · CNES ${escapar(e.cnes)}</small></span><span>${escapar(e.estabelecimento)}</span><span>${escapar(e.tipo || 'Tipo não informado')}</span></article>`).join('') || '<div class="cnes-empty">Nenhuma equipe encontrada.</div>'}</div></article>`;
+      } else {
+        $('#production-indicators').innerHTML = `<article class="indicator-panel cnes-panel"><button class="cnes-text-button" type="button" data-cnes-menu>← Voltar às consultas</button><h3>Profissionais do município</h3><div class="cnes-professional-filters"><label>Cargo/CBO<input data-prof-filter="cargo" placeholder="Filtrar cargo ou CBO"></label><label>CNES<input data-prof-filter="cnes" placeholder="Filtrar CNES"></label><label>Mantenedora<input data-prof-filter="mantenedora" placeholder="Filtrar mantenedora"></label></div><div class="cnes-professional-list" data-prof-list>${(result.items || []).map(p => `<article class="cnes-professional" data-prof-cargo="${escapar(`${p.cargo || ''} ${p.cbo || ''}`)}" data-prof-cnes="${escapar(p.cnes || '')}" data-prof-mantenedora="${escapar(p.mantenedora || '')}"><h5>${escapar(p.nome)}</h5><p><strong>CBO:</strong> ${escapar(p.cbo || 'Não informado')} · <strong>Cargo:</strong> ${escapar(p.cargo || 'Não informado')} · <strong>Carga:</strong> ${escapar(p.cargaHoraria)}h</p><p><strong>CNES:</strong> ${escapar(p.cnes || 'Não informado')} · <strong>Estabelecimento:</strong> ${escapar(p.nomeEstabelecimento || 'Não informado')} · <strong>Mantenedora:</strong> ${escapar(p.mantenedora || 'Não informada')}</p></article>`).join('') || '<div class="cnes-empty">Nenhum profissional encontrado.</div>'}</div></article>`;
+        document.querySelectorAll('[data-prof-filter]').forEach(input => input.addEventListener('input', () => { const filtros = Object.fromEntries([...document.querySelectorAll('[data-prof-filter]')].map(campo => [campo.dataset.profFilter, campo.value.toLocaleLowerCase('pt-BR').trim()])); document.querySelectorAll('[data-prof-list] .cnes-professional').forEach(card => { card.hidden = Object.entries(filtros).some(([campo, valor]) => valor && !(card.dataset[`prof${campo[0].toUpperCase()}${campo.slice(1)}`] || '').toLocaleLowerCase('pt-BR').includes(valor)); }); }));
+      }
+      mostrarStatus('');
+    } catch (error) { mostrarStatus(error.message, 'error'); }
   }
 
   function renderizarEquipes() {
@@ -149,15 +173,18 @@
 
   function reset({ preserveMunicipality = false } = {}) {
     state.listaController?.abort(); state.detalheController?.abort(); state.equipeController?.abort();
-    Object.assign(state, { estabelecimentos: [], nextCursor: 0, hasNext: false, consultadoEm: null, unidade: null, equipes: null, equipe: null, profissionais: null, outros: null });
+    Object.assign(state, { estabelecimentos: [], nextCursor: 0, hasNext: false, consultadoEm: null, unidade: null, equipes: null, equipe: null, profissionais: null, outros: null, modo: '' });
     if (!preserveMunicipality) state.municipio = '';
     if ($('#cnes-consultar')) $('#cnes-consultar').disabled = !$('#municipio')?.value;
   }
   function prepararMunicipio() { reset({ preserveMunicipality: true }); state.municipio = $('#municipio').value; $('#cnes-consultar').disabled = !state.municipio; }
   function periodoRelatorio() { return state.equipe ? `Equipe ${state.equipe.ine} · CNES ${state.unidade.cnes}` : state.unidade ? `Estabelecimento CNES ${state.unidade.cnes}` : 'Relação municipal de unidades CNES'; }
   function init() {
+    renderizarMenu();
     $('#cnes-consultar').addEventListener('click', () => carregarEstabelecimentos());
     $('#production-indicators').addEventListener('click', event => {
+      const modo = event.target.closest('[data-cnes-mode]'); if (modo) { if (modo.dataset.cnesMode === 'sus' || modo.dataset.cnesMode === 'gerais') { state.modo = modo.dataset.cnesMode; $('#cnes-consultar').click(); } else carregarConsultaMunicipal(modo.dataset.cnesMode); return; }
+      if (event.target.closest('[data-cnes-menu]')) { renderizarMenu(); return; }
       const abrir = event.target.closest('[data-cnes-open]'); if (abrir) return abrirUnidade(abrir.dataset.cnesOpen);
       const equipe = event.target.closest('[data-cnes-team]'); if (equipe) return selecionarEquipe(equipe.dataset.cnesTeam);
       if (event.target.closest('[data-cnes-more-units]')) return carregarEstabelecimentos({ continuar: true });
@@ -166,5 +193,5 @@
       if (event.target.closest('[data-cnes-back]')) { state.detalheController?.abort(); state.equipeController?.abort(); state.unidade = null; renderizarLista(); }
     });
   }
-  window.HorusCnes = { init, reset, prepararMunicipio, periodoRelatorio, consultar: carregarEstabelecimentos };
+  window.HorusCnes = { init, reset, prepararMunicipio, periodoRelatorio, consultar: carregarEstabelecimentos, menu: renderizarMenu };
 })();

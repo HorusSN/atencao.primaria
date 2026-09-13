@@ -12,6 +12,15 @@ module.exports = async function handler(req, res) {
     if (resource === 'estabelecimentos') {
       dados = await cnes.listarEstabelecimentos(req.query);
       res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400, max-age=0');
+    } else if (resource === 'estabelecimentos-gerais') {
+      dados = await cnes.listarEstabelecimentosGerais(req.query);
+      res.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400, max-age=0');
+    } else if (resource === 'equipes-municipio') {
+      dados = await cnes.listarEquipesMunicipio(req.query);
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=21600, max-age=0');
+    } else if (resource === 'profissionais-municipio') {
+      dados = await cnes.listarProfissionaisMunicipio(req.query);
+      res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=21600, max-age=0');
     } else if (resource === 'profissionais-equipe') {
       dados = await cnes.listarProfissionaisEquipe(req.query);
       res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=21600, max-age=0');

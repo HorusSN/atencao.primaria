@@ -1056,6 +1056,7 @@ async function atualizarMunicipioSelecionado() {
   mostrarStatus('');
   if (currentTopic === 'CNES') {
     window.HorusCnes.prepararMunicipio();
+    window.HorusCnes.menu();
     emptyState.textContent = municipioSelecionado
       ? 'Clique em Consultar para carregar os estabelecimentos elegíveis do município.'
       : 'Selecione um município para consultar o CNES.';
