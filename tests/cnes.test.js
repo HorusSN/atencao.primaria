@@ -17,26 +17,30 @@ const publicoSus = {
   data_atualizacao: '2026-08-01'
 };
 
-test('elegibilidade usa SUS e natureza oficial, sem heurística por nome', () => {
-  assert.equal(cnes.estabelecimentoElegivel(publicoSus), true);
-  assert.equal(cnes.estabelecimentoElegivel({ ...publicoSus, estabelecimento_faz_atendimento_ambulatorial_sus: 'NAO' }), false);
-  assert.equal(cnes.estabelecimentoElegivel({
+test('elegibilidade usa somente os grupos oficiais de natureza jurídica', () => {
+  const caso = (natureza, sus) => ({
     ...publicoSus,
-    nome_fantasia: 'SECRETARIA MUNICIPAL FILANTROPICA',
-    descricao_natureza_juridica_estabelecimento: '2062',
-    descricao_esfera_administrativa: null
-  }), false);
-  assert.equal(cnes.estabelecimentoElegivel({
-    ...publicoSus,
-    descricao_natureza_juridica_estabelecimento: '3999',
-    descricao_esfera_administrativa: null
-  }), true);
+    descricao_natureza_juridica_estabelecimento: natureza,
+    estabelecimento_faz_atendimento_ambulatorial_sus: sus,
+    descricao_esfera_administrativa: 'MUNICIPAL'
+  });
+  assert.equal(cnes.estabelecimentoElegivel(caso('1244', 'SIM')), true, 'administração pública com SUS');
+  assert.equal(cnes.estabelecimentoElegivel(caso('1244', 'NAO')), true, 'administração pública sem SUS');
+  assert.equal(cnes.estabelecimentoElegivel(caso('3999', 'SIM')), true, 'entidade filantrópica/sem fins lucrativos com SUS');
+  assert.equal(cnes.estabelecimentoElegivel(caso('3069', 'NAO')), true, 'entidade filantrópica/sem fins lucrativos sem SUS');
+  assert.equal(cnes.estabelecimentoElegivel(caso('2062', 'SIM')), false, 'privada com fins lucrativos');
+  assert.equal(cnes.estabelecimentoElegivel(caso('4000', 'SIM')), false, 'pessoa física');
+  assert.equal(cnes.estabelecimentoElegivel(caso('3998', 'SIM')), false, 'código desconhecido dentro de um prefixo elegível');
+  assert.equal(cnes.estabelecimentoElegivel(caso('9999', 'SIM')), false, 'código desconhecido');
+  assert.equal(cnes.estabelecimentoElegivel(caso('', 'SIM')), false, 'código ausente');
 });
 
 test('normalização do estabelecimento preserva somente dados institucionais úteis', () => {
   const item = cnes.normalizarEstabelecimento({ ...publicoSus, numero_cnpj: '123', endereco_email_estabelecimento: 'x@example.com' });
   assert.equal(item.cnes, '6517234');
-  assert.equal(item.classificacaoNatureza, 'Pública');
+  assert.equal(item.classificacaoNatureza, 'Administração Pública');
+  assert.equal(item.atendeSus, true);
+  assert.equal(item.atendimentoSus, 'SIM');
   assert.deepEqual(item.endereco, { logradouro: 'RUA TESTE', numero: '10', bairro: 'CENTRO', cep: '35135000' });
   assert.equal('numero_cnpj' in item, false);
   assert.equal('endereco_email_estabelecimento' in item, false);

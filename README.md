@@ -74,17 +74,30 @@ As Vercel Functions expõem somente contratos normalizados no mesmo domínio:
 ### Elegibilidade das unidades
 
 A listagem parte da API oficial de Dados Abertos do Ministério da Saúde, solicita
-somente estabelecimentos ativos e aplica simultaneamente:
+estabelecimentos ativos e usa exclusivamente o código de natureza jurídica da
+Tabela CONCLA adotada pelo CNES:
 
-1. `estabelecimento_faz_atendimento_ambulatorial_sus = SIM`; e
-2. natureza jurídica pública (grupo CONCLA `1xxx` ou esfera administrativa
-   federal, estadual, municipal ou distrital) **ou** um dos códigos sem fins
-   lucrativos `3069`, `3077`, `3220`, `3239`, `3301`, `3999`.
+1. todos os códigos `1xxx`, categoria oficial **Administração Pública**; ou
+2. todos os códigos `3xxx`, categoria oficial **Entidades sem Fins Lucrativos**,
+   usada como a categoria cadastral disponível para entidades filantrópicas.
 
-Não há filtro por palavras no nome. A fonte aberta não informa certificação CEBAS;
-por isso a interface descreve o segundo grupo como “entidade sem fins lucrativos”,
-sem afirmar certificação filantrópica. Pessoas físicas e empresas com fins
-lucrativos ficam fora.
+Os códigos reconhecidos são enumerados, em vez de aceitar qualquer prefixo:
+
+- grupo 1: `1015`, `1023`, `1031`, `1040`, `1058`, `1066`, `1074`, `1082`,
+  `1104`, `1112`, `1120`, `1139`, `1147`, `1155`, `1163`, `1171`, `1180`,
+  `1198`, `1210`, `1228`, `1236`, `1244`, `1252`, `1260`, `1279`, `1287`,
+  `1295`, `1309`, `1317`, `1325`, `1333`, `1341`;
+- grupo 3: `3034`, `3069`, `3077`, `3085`, `3107`, `3115`, `3131`, `3204`,
+  `3212`, `3220`, `3239`, `3247`, `3255`, `3263`, `3271`, `3280`, `3298`,
+  `3301`, `3310`, `3328`, `3999`.
+
+O indicador `estabelecimento_faz_atendimento_ambulatorial_sus`, a esfera
+administrativa, o tipo e o nome do estabelecimento não participam da decisão. A
+fonte aberta não informa separadamente certificação filantrópica/CEBAS; por isso a
+interface preserva a denominação oficial “Entidade sem fins lucrativos”, sem
+afirmar certificação individual. Códigos `2xxx` (entidades empresariais), `4xxx`
+(pessoas físicas), `5xxx` (organizações internacionais e outras instituições
+extraterritoriais) e códigos ausentes ou desconhecidos ficam fora de forma segura.
 
 ### Equipes, profissionais e privacidade
 
